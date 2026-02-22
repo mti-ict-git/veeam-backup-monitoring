@@ -87,8 +87,8 @@ This project is built with:
   - `REPORT_CAPTION_MODE=full`                 # full | short
   - `REPORT_HIDE_SIDEBAR=true`                 # sembunyikan sidebar pada screenshot
   - `REPORT_URL=http://localhost:8080/`        # URL dashboard untuk screenshot
-  - `REPORT_CHAT_ID=<group-id>`                # opsional; default ke WHATSAPP_GROUP_ID
   - `REPORT_ON_START=false`                    # kirim sekali saat start
+  - `# REPORT_CHAT_ID=<group-id>`              # OPSIONAL. Jika tidak diisi, pakai WHATSAPP_GROUP_ID
 - Start both services:
   - `npm run dev:full`
 - Send a report with screenshot:
@@ -106,6 +106,28 @@ This project is built with:
   - Scheduler akan memanggil endpoint internal pada jadwal yang dikonfigurasi.
   - Gunakan `REPORT_AT` untuk jadwal harian sederhana (HH:MM di `REPORT_TIMEZONE`) atau `REPORT_SCHEDULE_CRON` untuk pola berulang kustom.
   - Pastikan `REPORT_ENABLED=true`.
+  - Jika `REPORT_CHAT_ID` tidak di-set, scheduler otomatis memakai `WHATSAPP_GROUP_ID`.
+
+## Docker Compose
+
+- Build dan jalan:
+  - `docker compose build`
+  - `docker compose up -d`
+- Service:
+  - Web (Vite build + Nginx): http://localhost:8080/
+  - Backend (Express + Puppeteer): http://localhost:4000/
+- Env:
+  - File `.env` di root dipakai untuk service backend.
+  - `DASHBOARD_URL` otomatis diset ke `http://web:8080/` via compose agar screenshot mengarah ke service web.
+- Uji kirim manual:
+  - `POST http://localhost:4000/api/notify/whatsapp`
+  - Body minimal:
+    ```
+    { "auto": true, "captionMode": "full", "hideSidebar": true }
+    ```
+- Logs:
+  - `docker compose logs -f backend`
+  - `docker compose logs -f web`
 
 ## How can I deploy this project?
 

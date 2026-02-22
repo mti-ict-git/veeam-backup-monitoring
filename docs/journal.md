@@ -89,3 +89,10 @@
 2026-02-23 01:33:02 WIB
 - Make caption timezone configurable via REPORT_CAPTION_TIMEZONE and REPORT_CAPTION_TZ_LABEL.
 - Updated caption time/date and restore test date to use configured TZ.
+2026-02-23 01:41:20 WIB
+- Clarify env: REPORT_CHAT_ID is optional; defaults to WHATSAPP_GROUP_ID in scheduler.
+- README examples updated to omit REPORT_CHAT_ID by default.
+2026-02-23 01:53:49 WIB
+- Add Dockerfiles and docker-compose for web and backend (Puppeteer base).
+- Set compose to route DASHBOARD_URL to http://web:8080/.
+- Add .dockerignore files and README Docker instructions.

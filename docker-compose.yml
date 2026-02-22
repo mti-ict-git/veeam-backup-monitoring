@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: veeam_web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: veeam_backend
+    env_file:
+      - .env
+    environment:
+      DASHBOARD_URL: http://web:8080/
+    depends_on:
+      - web
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
