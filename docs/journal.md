@@ -79,3 +79,13 @@
 2026-02-23 01:07:18 WIB
 - Fix repository usage percent in caption: clamp used≤capacity and pct≤100%.
 - Verified text-only auto caption returns 200 and shows bounded percentages.
+2026-02-23 01:18:11 WIB
+- Switch WhatsApp env to WHATSAPP_API_URL with fallback to old var.
+- Updated README env docs (WHATSAPP_API_URL, WHATSAPP_GROUP_ID).
+2026-02-23 01:23:30 WIB
+- Add scheduler with node-cron; supports REPORT_AT, REPORT_SCHEDULE_CRON, timezone.
+- Expose envs: REPORT_ENABLED, REPORT_CAPTION_MODE, REPORT_HIDE_SIDEBAR, REPORT_URL, REPORT_CHAT_ID, REPORT_ON_START.
+- README updated with scheduler usage and env examples.
+2026-02-23 01:33:02 WIB
+- Make caption timezone configurable via REPORT_CAPTION_TIMEZONE and REPORT_CAPTION_TZ_LABEL.
+- Updated caption time/date and restore test date to use configured TZ.

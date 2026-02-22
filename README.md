@@ -75,8 +75,20 @@ This project is built with:
 ## WhatsApp Daily Report (Backend)
 
 - Configure these in `.env`:
-  - `WHATSAPP_GATEWAY_URL=http://<gateway-host>:8192/send-group-message`
+  - `WHATSAPP_API_URL=http://<gateway-host>:8192/send-group-message`
+  - `WHATSAPP_GROUP_ID=<group-id>`
   - `DASHBOARD_URL=http://localhost:8080/`
+  - `REPORT_ENABLED=true`                      # aktifkan scheduler
+  - `REPORT_AT=01:00`                          # jam WIB harian, alternatif ke CRON
+  - `REPORT_SCHEDULE_CRON=0 1 * * *`           # ekspresi cron (override REPORT_AT)
+  - `REPORT_TIMEZONE=Asia/Jakarta`             # zona waktu
+  - `REPORT_CAPTION_TIMEZONE=Asia/Jakarta`     # zona waktu yang ditampilkan pada caption
+  - `REPORT_CAPTION_TZ_LABEL=WIB`              # label TZ pada caption (mis. WIB/WITA/+08:00)
+  - `REPORT_CAPTION_MODE=full`                 # full | short
+  - `REPORT_HIDE_SIDEBAR=true`                 # sembunyikan sidebar pada screenshot
+  - `REPORT_URL=http://localhost:8080/`        # URL dashboard untuk screenshot
+  - `REPORT_CHAT_ID=<group-id>`                # opsional; default ke WHATSAPP_GROUP_ID
+  - `REPORT_ON_START=false`                    # kirim sekali saat start
 - Start both services:
   - `npm run dev:full`
 - Send a report with screenshot:
@@ -84,11 +96,16 @@ This project is built with:
   - Body:
     ```
     {
-      "chatId": "120363123402010871@g.us",
+      "chatId": "<group-id>",
       "caption": "Your caption here",
       "url": "http://localhost:8080/"
     }
     ```
+  
+- Scheduler:
+  - Scheduler akan memanggil endpoint internal pada jadwal yang dikonfigurasi.
+  - Gunakan `REPORT_AT` untuk jadwal harian sederhana (HH:MM di `REPORT_TIMEZONE`) atau `REPORT_SCHEDULE_CRON` untuk pola berulang kustom.
+  - Pastikan `REPORT_ENABLED=true`.
 
 ## How can I deploy this project?
 

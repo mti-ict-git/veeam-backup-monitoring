@@ -17,6 +17,7 @@ import {
 } from "./types";
 import { captureDashboard } from "./screenshot";
 import { sendGroupMessage, sendImageWithCaption } from "./whatsapp";
+import { startReportScheduler } from "./scheduler";
 
 const config = loadConfig();
 const app = express();
@@ -189,10 +190,12 @@ function formatTB(gb?: number) {
 }
 
 function jakartaNow() {
+  const tz = process.env.REPORT_CAPTION_TIMEZONE ?? "Asia/Jakarta";
+  const label = process.env.REPORT_CAPTION_TZ_LABEL ?? (tz === "Asia/Jakarta" ? "WIB" : tz);
   const date = new Date();
-  const d = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
-  const t = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jakarta" });
-  return { dateStr: d, timeStr: `${t} WIB` };
+  const d = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: tz });
+  const t = date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz });
+  return { dateStr: d, timeStr: `${t} ${label}` };
 }
 
 function sanitizeCaption(input: string, maxLen = 900) {
@@ -287,7 +290,8 @@ async function buildCaption(): Promise<string> {
   const d = (restoreLatest as RestoreTestLatestResponse | null)?.data ?? null;
   if (d && d.lastTestAt) {
     const dt = new Date(d.lastTestAt);
-    const ds = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+    const tz = process.env.REPORT_CAPTION_TIMEZONE ?? "Asia/Jakarta";
+    const ds = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: tz });
     const res = d.result ?? "Unknown";
     restoreLine = `- ${res} (${ds})`;
   }
@@ -511,3 +515,4 @@ app.get("/healthz", (_req, res) => {
 app.listen(config.port, () => {
   // no-op
 });
+startReportScheduler();
