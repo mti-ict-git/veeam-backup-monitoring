@@ -1,5 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
+import { fetchJobsStates } from "@/lib/api";
+import { countResults, computeRiskScore, formatPercent } from "@/lib/metrics";
+
 const RiskScore = () => {
-  const score = 18;
+  const { data, isLoading } = useQuery({
+    queryKey: ["jobs-states"],
+    queryFn: ({ signal }) => fetchJobsStates(signal),
+  });
+  const now = new Date();
+  const counts = data ? countResults(data.data, now, 24) : undefined;
+  const calc = counts ? computeRiskScore(counts) : { score: 0, breakdown: { compliance: 1, failDensity: 0, warnDensity: 0 } };
+  const score = calc.score;
   const maxScore = 100;
   const pct = (score / maxScore) * 100;
 
@@ -31,13 +42,18 @@ const RiskScore = () => {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-4xl font-bold ${riskColor}`}>{score}</span>
+          <span className={`text-4xl font-bold ${riskColor}`}>{isLoading ? "…" : score}</span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">/ {maxScore}</span>
         </div>
       </div>
       <div className="mt-3 text-center">
         <span className={`text-sm font-bold ${riskColor}`}>{riskLevel} Risk</span>
         <p className="text-xs text-muted-foreground mt-1">Based on backup health metrics</p>
+      </div>
+      <div className="mt-3 text-[11px] text-muted-foreground text-center">
+        <div>Compliance {isLoading ? "…" : formatPercent(calc.breakdown.compliance, 1)}</div>
+        <div>fail {isLoading ? "…" : formatPercent(calc.breakdown.failDensity, 1)} + warn {isLoading ? "…" : formatPercent(calc.breakdown.warnDensity, 1)}</div>
+        <div>score = (1 - compl)*70 + fail*20 + warn*10</div>
       </div>
     </div>
   );

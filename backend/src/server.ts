@@ -36,10 +36,18 @@ app.get("/api/veeam/repositories/states", async (_req, res) => {
     const normalized: RepositoriesStatesResponse = {
       data: data.data.map((r) => {
         const cap = r.capacityGB ?? 0;
-        const used = r.usedSpaceGB ?? (cap && r.freeGB !== undefined ? cap - r.freeGB : undefined);
+        let free = r.freeGB;
+        let used = r.usedSpaceGB;
+        if (cap && free !== undefined) {
+          free = Math.max(0, Math.min(cap, free));
+          used = Math.max(0, Math.min(cap, cap - free));
+        } else if (cap && used !== undefined) {
+          used = Math.max(0, Math.min(cap, used));
+        }
         return {
           ...r,
           usedSpaceGB: used,
+          freeGB: free,
         };
       }),
     };

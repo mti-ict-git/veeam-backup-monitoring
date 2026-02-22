@@ -1,8 +1,9 @@
-# Welcome to your Lovable project
+# Veeam Backup Monitoring – Dev Setup
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Local frontend: http://localhost:8080/
+Local backend: http://localhost:4000/
 
 ## How can I edit this code?
 
@@ -32,8 +33,15 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Step 4: Provide environment for Veeam API in .env at project root
+echo "VEEAM_USERNAME=<user>" >> .env
+echo "VEEAM_PASSWORD=<pass>" >> .env
+echo "VEEAM_HOST=10.60.10.128:9419" >> .env
+echo "VEEAM_INSECURE_TLS=true" >> .env
+echo "CORS_ORIGIN=http://localhost:8080" >> .env
+
+# Step 5: Start both backend and frontend together
+npm run dev:full
 ```
 
 **Edit a file directly in GitHub**
@@ -59,6 +67,8 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Express (backend proxy)
+- Axios (backend HTTP client)
 
 ## How can I deploy this project?
 

@@ -6,7 +6,9 @@ function getPct(r: RepositoryState) {
   const cap = r.capacityGB ?? 0;
   const used = r.usedSpaceGB ?? 0;
   if (!cap) return 0;
-  return Math.round((used / cap) * 100);
+  // Clamp to 0..100 for visual bar; value can exceed 100% but bar stays full
+  const pct = Math.round((used / cap) * 100);
+  return Math.max(0, Math.min(100, pct));
 }
 
 function humanTB(gb: number | undefined) {
@@ -37,21 +39,27 @@ const StorageUsage = () => {
         <div className="grid grid-cols-3 gap-3">
           {(isLoading ? Array.from({ length: 3 }).map((_, i) => ({ name: `Repository ${i + 1}` })) : repos).map(
             (r, idx) => {
-              const pct = isLoading ? 0 : getPct(r as RepositoryState);
-              const used = isLoading ? undefined : (r as RepositoryState).usedSpaceGB;
-              const cap = isLoading ? undefined : (r as RepositoryState).capacityGB;
-              const free = isLoading
-                ? undefined
-                : cap !== undefined && used !== undefined
-                  ? cap - used
-                  : undefined;
+              const repo = r as RepositoryState;
+              const pct = isLoading ? 0 : getPct(repo);
+              const pctText = isLoading
+                ? 0
+                : (() => {
+                    const capVal = repo.capacityGB ?? 0;
+                    const usedVal = repo.usedSpaceGB ?? 0;
+                    if (!capVal) return 0;
+                    const raw = Math.round((usedVal / capVal) * 100);
+                    return Math.max(0, Math.min(100, raw));
+                  })();
+              const used = isLoading ? undefined : repo.usedSpaceGB;
+              const cap = isLoading ? undefined : repo.capacityGB;
+              // Prefer upstream freeGB if provided; otherwise derive and clamp at 0
+              const rawFree = isLoading ? undefined : repo.freeGB ?? (cap !== undefined && used !== undefined ? cap - used : undefined);
+              const free = isLoading ? undefined : rawFree !== undefined ? Math.max(0, rawFree) : undefined;
               return (
-                <div key={`${(r as RepositoryState).name}-${idx}`} className="bg-card rounded-xl shadow-sm border border-border p-4">
+                <div key={`${repo.name}-${idx}`} className="bg-card rounded-xl shadow-sm border border-border p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <HardDrive className="h-4 w-4 text-navy" />
-                    <span className="text-sm font-semibold text-foreground truncate">
-                      {(r as RepositoryState).name}
-                    </span>
+                    <span className="text-sm font-semibold text-foreground truncate">{repo.name}</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mb-2">
                     <span>Used: {isLoading ? "…" : humanTB(used)}</span>
@@ -62,10 +70,8 @@ const StorageUsage = () => {
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-muted-foreground">{isLoading ? "…" : `${humanTB(cap)} total`}</span>
-                    <span
-                      className={`text-sm font-bold ${pct > 85 ? "text-critical" : pct > 70 ? "text-warning" : "text-success"}`}
-                    >
-                      {isLoading ? "…" : `${pct}%`}
+                    <span className={`text-sm font-bold ${pct > 85 ? "text-critical" : pct > 70 ? "text-warning" : "text-success"}`}>
+                      {isLoading ? "…" : `${pctText}%`}
                     </span>
                   </div>
                 </div>

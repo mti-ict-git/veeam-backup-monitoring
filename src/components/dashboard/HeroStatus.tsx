@@ -1,9 +1,18 @@
 import { ShieldCheck, Server, Briefcase, TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchJobsStates } from "@/lib/api";
+import { countResults, computeCompliance, computeOverallStatus, formatPercent } from "@/lib/metrics";
 
 const HeroStatus = () => {
-  const overallStatus = "HEALTHY";
+  const { data, isLoading, isError, dataUpdatedAt } = useQuery({
+    queryKey: ["jobs-states"],
+    queryFn: ({ signal }) => fetchJobsStates(signal),
+  });
   const now = new Date();
-  const lastSync = new Date(now.getTime() - 12 * 60000);
+  const counts = data ? countResults(data.data, now, 24) : undefined;
+  const compliance = counts ? computeCompliance(counts) : 1;
+  const overallStatus = counts ? computeOverallStatus(counts) : isError ? "CRITICAL" : "HEALTHY";
+  const lastSync = dataUpdatedAt ? new Date(dataUpdatedAt) : now;
 
   const statusConfig = {
     HEALTHY: { bg: "bg-success", label: "All Systems Operational" },
@@ -16,7 +25,6 @@ const HeroStatus = () => {
   return (
     <div className="bg-navy rounded-xl p-6 text-primary-foreground shadow-lg">
       <div className="flex items-center justify-between">
-        {/* Left: Status */}
         <div className="flex items-center gap-5">
           <div className={`${config.bg} rounded-xl p-4 animate-pulse-slow`}>
             <ShieldCheck className="h-10 w-10 text-success-foreground" />
@@ -30,7 +38,6 @@ const HeroStatus = () => {
           </div>
         </div>
 
-        {/* Center: Date & Sync */}
         <div className="text-right space-y-1">
           <p className="text-xs text-primary-foreground/50 uppercase tracking-wider">Report Date</p>
           <p className="text-lg font-semibold">
@@ -42,11 +49,18 @@ const HeroStatus = () => {
         </div>
       </div>
 
-      {/* Bottom stats */}
       <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-primary-foreground/10">
-        <StatItem icon={<Server className="h-5 w-5" />} value="142" label="Protected VMs" />
-        <StatItem icon={<Briefcase className="h-5 w-5" />} value="38" label="Backup Jobs" />
-        <StatItem icon={<TrendingUp className="h-5 w-5" />} value="98.6%" label="SLA Compliance" />
+        <StatItem icon={<Server className="h-5 w-5" />} value="—" label="Protected VMs" />
+        <StatItem
+          icon={<Briefcase className="h-5 w-5" />}
+          value={isLoading ? "…" : String(data?.data.length ?? 0)}
+          label="Backup Jobs"
+        />
+        <StatItem
+          icon={<TrendingUp className="h-5 w-5" />}
+          value={isLoading ? "…" : formatPercent(compliance, 1)}
+          label="SLA Compliance"
+        />
       </div>
     </div>
   );
