@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchJobsStates, type JobState } from "@/lib/api";
-import { criticalVms } from "@/config/criticalVms";
-import type { CriticalVMConfig } from "@/config/criticalVms";
+import { fetchVMProtection, type VMProtection } from "@/lib/api";
 import { format } from "date-fns";
 
 function parseDate(d?: string): Date | undefined {
@@ -21,47 +19,34 @@ function isFail(res?: string): boolean {
   return r.includes("fail") || r.includes("error");
 }
 
-function findMatchedJob(jobs: JobState[], cfg: CriticalVMConfig): JobState | undefined {
-  const exact = jobs.find((j) => j.name === cfg.jobName) ?? jobs.find((j) => j.name.toLowerCase() === cfg.jobName.toLowerCase());
-  if (exact) return exact;
-  const tokens = (cfg.matchIncludes ?? []).map((t) => t.toLowerCase());
-  const candidates = tokens.length
-    ? jobs.filter((j) => {
-        const n = j.name.toLowerCase();
-        return tokens.some((t) => n.includes(t));
-      })
-    : [];
-  if (candidates.length === 0) return undefined;
-  const withDates = candidates
-    .map((j) => ({ j, dt: parseDate(j.lastRun) }))
-    .sort((a, b) => {
-      const at = a.dt ? a.dt.getTime() : -Infinity;
-      const bt = b.dt ? b.dt.getTime() : -Infinity;
-      return bt - at;
-    });
-  return withDates[0]?.j ?? candidates[0];
-}
-
 const CriticalVMTable = () => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["jobs-states"],
-    queryFn: ({ signal }) => fetchJobsStates(signal),
+    queryKey: ["vms-protection"],
+    queryFn: ({ signal }) => fetchVMProtection(signal),
   });
   const now = new Date();
-  const jobs = data?.data ?? [];
-  const rows = criticalVms.map((vm) => {
-    const job = findMatchedJob(jobs, vm);
-    const dt = parseDate(job?.lastRun);
-    const lastBackup = dt ? format(dt, "yyyy-MM-dd HH:mm") : "—";
-    const withinRpo = dt ? hoursDiff(now, dt) <= vm.rpoHours : false;
-    const failed = isFail(job?.lastResult);
-    const ok = withinRpo && !failed;
+  const items: VMProtection[] = data?.data ?? [];
+  const primaryRpoHours = 24;
+  const vaultLagHours = 2;
+  const rows = items.map((v) => {
+    const pdt = parseDate(v.primaryLastRun);
+    const cdt = parseDate(v.copyLastRun);
+    const lastBackup = pdt ? format(pdt, "yyyy-MM-dd HH:mm") : "—";
+    const withinRpo = pdt ? hoursDiff(now, pdt) <= primaryRpoHours : false;
+    const primaryFailed = isFail(v.primaryResult);
+    const vaultFailed = isFail(v.copyResult);
+    const vaultLagOk = cdt ? hoursDiff(now, cdt) <= vaultLagHours : false;
+    const primaryOk = withinRpo && !primaryFailed;
+    const vaultOk = cdt ? vaultLagOk && !vaultFailed : false;
+    const ok = primaryOk && vaultOk;
     const rpo = withinRpo ? "Compliant" : "Breach";
-    return { name: vm.name, env: vm.env, lastBackup, rpo, ok };
+    const vaultLast = cdt ? format(cdt, "yyyy-MM-dd HH:mm") : "—";
+    const vaultLagText = cdt ? `${Math.floor(hoursDiff(now, cdt))}h` : "—";
+    return { name: v.name, env: "Production", lastBackup, rpo, ok, vaultLast, vaultLagText, rpoOk: withinRpo };
   });
   return (
     <div>
-      <h2 className="text-lg font-semibold text-foreground mb-3">Critical Infrastructure Protection</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">VM Protection (Primary + Vault)</h2>
       {isError ? (
         <div className="text-sm text-critical">Failed to load jobs</div>
       ) : (
@@ -71,13 +56,15 @@ const CriticalVMTable = () => {
               <tr className="bg-navy text-primary-foreground">
                 <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">VM Name</th>
                 <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Environment</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Last Backup</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">RPO Status</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Primary Last Backup</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Primary RPO</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Vault Last Copy</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Vault Lag</th>
                 <th className="text-center px-4 py-2.5 font-semibold text-xs uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody>
-              {(isLoading ? criticalVms.map((c) => ({ name: c.name, env: c.env, lastBackup: "…", rpo: "…", ok: true })) : rows).map(
+              {(isLoading ? Array.from({ length: 8 }).map((_, i) => ({ name: `VM ${i + 1}`, env: "Production", lastBackup: "…", rpo: "…", vaultLast: "…", vaultLagText: "…", ok: true, rpoOk: true })) : rows).map(
                 (vm, i) => (
                   <tr
                     key={vm.name}
@@ -86,17 +73,17 @@ const CriticalVMTable = () => {
                     <td className="px-4 py-2.5 font-medium text-foreground">{vm.name}</td>
                     <td className="px-4 py-2.5">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          vm.env === "Production" ? "bg-navy/10 text-navy" : "bg-muted text-muted-foreground"
-                        }`}
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground"
                       >
                         {vm.env}
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-muted-foreground">{vm.lastBackup}</td>
                     <td className="px-4 py-2.5">
-                      <span className={`font-semibold text-xs ${vm.ok ? "text-success" : "text-critical"}`}>{vm.rpo}</span>
+                      <span className={`font-semibold text-xs ${vm.rpoOk ? "text-success" : "text-critical"}`}>{vm.rpo}</span>
                     </td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{(vm as unknown as { vaultLast: string }).vaultLast}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{(vm as unknown as { vaultLagText: string }).vaultLagText}</td>
                     <td className="px-4 py-2.5 text-center">
                       <span
                         className={`inline-block w-3 h-3 rounded-full ${vm.ok ? "bg-success" : "bg-critical animate-pulse-slow"}`}

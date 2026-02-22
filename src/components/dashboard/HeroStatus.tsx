@@ -1,18 +1,33 @@
-import { ShieldCheck, Server, Briefcase, TrendingUp } from "lucide-react";
+import { ShieldCheck, Briefcase, CopyCheck, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchJobsStates } from "@/lib/api";
+import { fetchJobsStates, fetchCopyJobsStates, type JobState } from "@/lib/api";
 import { countResults, computeCompliance, computeOverallStatus, formatPercent } from "@/lib/metrics";
 
 const HeroStatus = () => {
-  const { data, isLoading, isError, dataUpdatedAt } = useQuery({
+  const primaryQ = useQuery({
     queryKey: ["jobs-states"],
     queryFn: ({ signal }) => fetchJobsStates(signal),
   });
+  const copyQ = useQuery({
+    queryKey: ["jobs-copy-states"],
+    queryFn: ({ signal }) => fetchCopyJobsStates(signal),
+  });
   const now = new Date();
+  const data = primaryQ.data;
+  const isLoading = primaryQ.isLoading || copyQ.isLoading;
+  const isError = primaryQ.isError && copyQ.isError;
   const counts = data ? countResults(data.data, now, 24) : undefined;
   const compliance = counts ? computeCompliance(counts) : 1;
   const overallStatus = counts ? computeOverallStatus(counts) : isError ? "CRITICAL" : "HEALTHY";
-  const lastSync = dataUpdatedAt ? new Date(dataUpdatedAt) : now;
+  const lastSync = data?.data ? new Date(primaryQ.dataUpdatedAt) : now;
+  const allJobs = data?.data ?? [];
+  const backupJobs = allJobs.filter((j: JobState) => {
+    const t = (j.type ?? "").toLowerCase();
+    return t.includes("backup") && !t.includes("copy");
+  });
+  const copyJobs = (copyQ.data?.data ?? []).length > 0
+    ? copyQ.data?.data ?? []
+    : allJobs.filter((j: JobState) => (j.type ?? "").toLowerCase().includes("copy"));
 
   const statusConfig = {
     HEALTHY: { bg: "bg-success", label: "All Systems Operational" },
@@ -50,11 +65,15 @@ const HeroStatus = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-primary-foreground/10">
-        <StatItem icon={<Server className="h-5 w-5" />} value="—" label="Protected VMs" />
         <StatItem
           icon={<Briefcase className="h-5 w-5" />}
-          value={isLoading ? "…" : String(data?.data.length ?? 0)}
+          value={isLoading ? "…" : String(backupJobs.length)}
           label="Backup Jobs"
+        />
+        <StatItem
+          icon={<CopyCheck className="h-5 w-5" />}
+          value={isLoading ? "…" : String(copyJobs.length)}
+          label="Backup Copy Jobs"
         />
         <StatItem
           icon={<TrendingUp className="h-5 w-5" />}

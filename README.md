@@ -70,6 +70,24 @@ This project is built with:
 - Express (backend proxy)
 - Axios (backend HTTP client)
 
+## WhatsApp Daily Report (Backend)
+
+- Configure these in `.env`:
+  - `WHATSAPP_GATEWAY_URL=http://<gateway-host>:8192/send-group-message`
+  - `DASHBOARD_URL=http://localhost:8080/`
+- Start both services:
+  - `npm run dev:full`
+- Send a report with screenshot:
+  - `POST http://localhost:4000/api/notify/whatsapp`
+  - Body:
+    ```
+    {
+      "chatId": "120363123402010871@g.us",
+      "caption": "Your caption here",
+      "url": "http://localhost:8080/"
+    }
+    ```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
