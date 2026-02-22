@@ -11,6 +11,14 @@ const ADRiskScore = () => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (pct / 100) * circumference;
 
+  const factors = [
+    { label: "DC Health", status: "Good" },
+    { label: "Replication", status: "Good" },
+    { label: "Privilege Escalation", status: "None" },
+    { label: "Failed Login Spike", status: "Elevated" },
+    { label: "Disk Utilization", status: "Normal" },
+  ];
+
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border p-5 flex flex-col items-center">
       <h2 className="text-lg font-semibold text-foreground mb-4 self-start">AD Risk Score</h2>
@@ -37,7 +45,20 @@ const ADRiskScore = () => {
       </div>
       <div className="mt-3 text-center">
         <span className={`text-sm font-bold ${riskColor}`}>{riskLevel} Risk</span>
-        <p className="text-xs text-muted-foreground mt-1">Based on AD health & security metrics</p>
+      </div>
+
+      {/* Score factors */}
+      <div className="w-full mt-4 pt-3 border-t border-border space-y-1.5">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Score Factors</p>
+        {factors.map((f) => {
+          const isGood = f.status === "Good" || f.status === "None" || f.status === "Normal";
+          return (
+            <div key={f.label} className="flex justify-between text-xs">
+              <span className="text-muted-foreground">{f.label}</span>
+              <span className={`font-medium ${isGood ? "text-success" : "text-warning"}`}>{f.status}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
