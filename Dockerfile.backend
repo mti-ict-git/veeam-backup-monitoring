@@ -1,9 +1,12 @@
 FROM ghcr.io/puppeteer/puppeteer:latest
-WORKDIR /app
-COPY backend/package*.json backend/tsconfig.json ./backend/
-RUN cd backend && npm install
-COPY backend ./backend
-WORKDIR /app/backend
+USER root
+RUN mkdir -p /home/pptruser/app && chown -R pptruser:pptruser /home/pptruser/app
+USER pptruser
+WORKDIR /home/pptruser/app
+COPY --chown=pptruser:pptruser backend/package*.json backend/tsconfig.json ./backend/
+RUN cd backend && npm ci
+COPY --chown=pptruser:pptruser backend ./backend
+WORKDIR /home/pptruser/app/backend
 RUN npm run build
 EXPOSE 4000
 ENV PORT=4000

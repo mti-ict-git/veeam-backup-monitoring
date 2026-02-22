@@ -96,3 +96,9 @@
 - Add Dockerfiles and docker-compose for web and backend (Puppeteer base).
 - Set compose to route DASHBOARD_URL to http://web:8080/.
 - Add .dockerignore files and README Docker instructions.
+2026-02-23 02:09:42 WIB
+- Change docker-compose web port to 8085:80; fix README references.
+- Set backend DASHBOARD_URL to http://web/ (internal port 80).
+2026-02-23 02:15:08 WIB
+- Fix Dockerfile backend permissions: use pptruser workspace, chown, npm ci.
+- Guidance: rebuild images with 'docker compose build' on server.

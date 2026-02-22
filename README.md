@@ -114,11 +114,11 @@ This project is built with:
   - `docker compose build`
   - `docker compose up -d`
 - Service:
-  - Web (Vite build + Nginx): http://localhost:8080/
+  - Web (Vite build + Nginx): http://localhost:8085/
   - Backend (Express + Puppeteer): http://localhost:4000/
 - Env:
   - File `.env` di root dipakai untuk service backend.
-  - `DASHBOARD_URL` otomatis diset ke `http://web:8080/` via compose agar screenshot mengarah ke service web.
+  - `DASHBOARD_URL` otomatis diset ke `http://web/` via compose agar screenshot mengarah ke service web (internal port 80).
 - Uji kirim manual:
   - `POST http://localhost:4000/api/notify/whatsapp`
   - Body minimal:

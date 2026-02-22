@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.web
     container_name: veeam_web
     ports:
-      - "8080:80"
+      - "8085:80"
     restart: unless-stopped
 
   backend:
@@ -16,7 +16,7 @@ services:
     env_file:
       - .env
     environment:
-      DASHBOARD_URL: http://web:8080/
+      DASHBOARD_URL: http://web/
     depends_on:
       - web
     ports:
