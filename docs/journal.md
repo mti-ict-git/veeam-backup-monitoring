@@ -111,3 +111,6 @@
 2026-02-23 02:33:35 WIB
 - Fix Node 24 ESM import resolution by adding .js extensions on relative imports.
 - Update server, veeamClient, token, scheduler, whatsapp, screenshot.
+2026-02-23 02:40:17 WIB
+- Add Nginx reverse proxy for /api to backend in Docker web image.
+- Copy nginx/default.conf and update Dockerfile.web to use it.
