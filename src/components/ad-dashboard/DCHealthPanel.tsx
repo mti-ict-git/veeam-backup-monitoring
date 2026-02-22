@@ -1,16 +1,24 @@
-import { Server, Cpu, HardDrive, Clock, Activity } from "lucide-react";
+import { Server } from "lucide-react";
 
 const dcs = [
-  { name: "DC-PRIMARY-01", status: "Online", cpu: 34, memory: 58, diskFree: 72, uptime: "45d 12h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-SECONDARY-02", status: "Online", cpu: 22, memory: 41, diskFree: 65, uptime: "30d 8h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-SITE-B-01", status: "Online", cpu: 45, memory: 63, diskFree: 48, uptime: "15d 3h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-DR-01", status: "Online", cpu: 12, memory: 35, diskFree: 81, uptime: "60d 1h", ntds: "Running", netlogon: "Running" },
+  { name: "DC-PROD-01", status: "Online", cpu: 24, memory: 58, disk: 72, uptime: "45d 12h", ntds: "Running", netlogon: "Running" },
+  { name: "DC-PROD-02", status: "Online", cpu: 31, memory: 63, disk: 65, uptime: "45d 12h", ntds: "Running", netlogon: "Running" },
+  { name: "DC-DR-01", status: "Online", cpu: 12, memory: 41, disk: 81, uptime: "30d 8h", ntds: "Running", netlogon: "Running" },
+  { name: "DC-BRANCH-01", status: "Online", cpu: 18, memory: 45, disk: 77, uptime: "22d 5h", ntds: "Running", netlogon: "Running" },
 ];
+
+const getBarColor = (label: string, value: number) => {
+  if (label === "DISK") return value > 85 ? "bg-critical" : value > 70 ? "bg-warning" : "bg-success";
+  return value > 80 ? "bg-critical" : value > 60 ? "bg-warning" : "bg-success";
+};
 
 const DCHealthPanel = () => (
   <div>
-    <h2 className="text-lg font-semibold text-foreground mb-3">Domain Controller Health</h2>
-    <div className="grid grid-cols-2 gap-3">
+    <div className="flex items-center gap-2 mb-3">
+      <Server className="h-5 w-5 text-muted-foreground" />
+      <h2 className="text-lg font-semibold text-foreground">Domain Controller Health</h2>
+    </div>
+    <div className="grid grid-cols-4 gap-3">
       {dcs.map((dc) => {
         const isUnhealthy = dc.status === "Offline" || dc.ntds === "Stopped" || dc.netlogon === "Stopped";
         return (
@@ -18,30 +26,31 @@ const DCHealthPanel = () => (
             key={dc.name}
             className={`bg-card rounded-xl p-4 shadow-sm border ${isUnhealthy ? "border-critical border-2" : "border-border"}`}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-muted-foreground" />
-                <span className="font-semibold text-sm text-foreground">{dc.name}</span>
-              </div>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${dc.status === "Online" ? "bg-success-muted text-success" : "bg-critical-muted text-critical"}`}>
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-bold text-sm text-foreground">{dc.name}</span>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${dc.status === "Online" ? "bg-success-muted text-success" : "bg-critical-muted text-critical"}`}>
                 {dc.status}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-center mb-3">
-              <MetricItem icon={<Cpu className="h-3.5 w-3.5" />} label="CPU" value={`${dc.cpu}%`} warn={dc.cpu > 80} />
-              <MetricItem icon={<Activity className="h-3.5 w-3.5" />} label="Memory" value={`${dc.memory}%`} warn={dc.memory > 80} />
-              <MetricItem icon={<HardDrive className="h-3.5 w-3.5" />} label="Disk Free" value={`${dc.diskFree}%`} warn={dc.diskFree < 20} />
+            <div className="space-y-2.5 mb-4">
+              <MetricBar label="CPU" value={dc.cpu} />
+              <MetricBar label="MEM" value={dc.memory} />
+              <MetricBar label="DISK" value={dc.disk} />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-2">
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>Uptime: {dc.uptime}</span>
+            <div className="border-t border-border pt-3 space-y-1 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Uptime</span>
+                <span className="text-foreground font-medium">{dc.uptime}</span>
               </div>
-              <div className="flex gap-3">
-                <ServiceBadge label="NTDS" status={dc.ntds} />
-                <ServiceBadge label="Netlogon" status={dc.netlogon} />
+              <div className="flex justify-between">
+                <span>NTDS</span>
+                <span className={`font-semibold ${dc.ntds === "Running" ? "text-success" : "text-critical"}`}>{dc.ntds}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Netlogon</span>
+                <span className={`font-semibold ${dc.netlogon === "Running" ? "text-success" : "text-critical"}`}>{dc.netlogon}</span>
               </div>
             </div>
           </div>
@@ -51,18 +60,14 @@ const DCHealthPanel = () => (
   </div>
 );
 
-const MetricItem = ({ icon, label, value, warn }: { icon: React.ReactNode; label: string; value: string; warn: boolean }) => (
-  <div className="flex flex-col items-center gap-1">
-    <div className={`${warn ? "text-critical" : "text-muted-foreground"}`}>{icon}</div>
-    <span className={`text-sm font-bold ${warn ? "text-critical" : "text-foreground"}`}>{value}</span>
-    <span className="text-[10px] text-muted-foreground uppercase">{label}</span>
+const MetricBar = ({ label, value }: { label: string; value: number }) => (
+  <div className="flex items-center gap-2">
+    <span className="text-xs text-muted-foreground w-10 shrink-0">{label}</span>
+    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+      <div className={`h-full rounded-full ${getBarColor(label, value)}`} style={{ width: `${value}%` }} />
+    </div>
+    <span className="text-xs font-semibold text-foreground w-8 text-right">{value}%</span>
   </div>
-);
-
-const ServiceBadge = ({ label, status }: { label: string; status: string }) => (
-  <span className={`text-[10px] font-medium ${status === "Running" ? "text-success" : "text-critical font-bold"}`}>
-    {label}: {status}
-  </span>
 );
 
 export default DCHealthPanel;
