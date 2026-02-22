@@ -39,6 +39,8 @@ echo "VEEAM_PASSWORD=<pass>" >> .env
 echo "VEEAM_HOST=10.60.10.128:9419" >> .env
 echo "VEEAM_INSECURE_TLS=true" >> .env
 echo "CORS_ORIGIN=http://localhost:8080" >> .env
+echo "VEEAM_RESTORE_TESTS_PATH=<vbr-restore-tests-endpoint-path>" >> .env
+echo "VEEAM_SUREBACKUP_STATUS_PATH=<vbr-surebackup-status-endpoint-path>" >> .env
 
 # Step 5: Start both backend and frontend together
 npm run dev:full

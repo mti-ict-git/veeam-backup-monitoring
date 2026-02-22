@@ -1,7 +1,14 @@
 import axios, { AxiosInstance } from "axios";
 import https from "node:https";
 import { loadConfig } from "./config";
-import { JobsStatesResponse, RepositoriesStatesResponse, BackupsResponse } from "./types";
+import {
+  JobsStatesResponse,
+  RepositoriesStatesResponse,
+  BackupsResponse,
+  RestoreTestLatestResponse,
+  RestoreTestResult,
+  SureBackupStatusResponse,
+} from "./types";
 import { TokenManager } from "./token";
 
 export class VeeamClient {
@@ -99,5 +106,46 @@ export class VeeamClient {
       }
     }
     return { data: [] };
+  }
+
+  private normalizeRestoreTest(input: unknown): RestoreTestLatestResponse {
+    if (!input || typeof input !== "object") return { data: null };
+    const container = "data" in input && typeof (input as { data: unknown }).data === "object" ? (input as { data: unknown }).data : input;
+    if (!container || typeof container !== "object") return { data: null };
+    const lastTestAtVal = (container as { lastTestAt?: unknown }).lastTestAt;
+    const resultVal = (container as { result?: unknown }).result;
+    const durationVal = (container as { durationMinutes?: unknown }).durationMinutes;
+    const lastTestAt = typeof lastTestAtVal === "string" ? lastTestAtVal : null;
+    const durationMinutes = typeof durationVal === "number" ? durationVal : null;
+    const resultStr = typeof resultVal === "string" ? resultVal : "Unknown";
+    const result: RestoreTestResult =
+      resultStr === "Success" || resultStr === "Warning" || resultStr === "Failed" || resultStr === "Unknown" ? resultStr : "Unknown";
+    if (!lastTestAt && !durationMinutes && result === "Unknown") return { data: null };
+    return { data: { lastTestAt, result, durationMinutes } };
+  }
+
+  private normalizeSureBackupStatus(input: unknown): SureBackupStatusResponse {
+    if (!input || typeof input !== "object") return { data: null };
+    const container = "data" in input && typeof (input as { data: unknown }).data === "object" ? (input as { data: unknown }).data : input;
+    if (!container || typeof container !== "object") return { data: null };
+    const enabledVal = (container as { enabled?: unknown }).enabled;
+    const lastCheckVal = (container as { lastCheckAt?: unknown }).lastCheckAt;
+    if (typeof enabledVal !== "boolean") return { data: null };
+    const lastCheckAt = typeof lastCheckVal === "string" ? lastCheckVal : null;
+    return { data: { enabled: enabledVal, lastCheckAt } };
+  }
+
+  async getRestoreTestLatest(): Promise<RestoreTestLatestResponse> {
+    const path = this.config.restoreTestsPath;
+    if (!path) return { data: null };
+    const r = await this.http.get<unknown>(path, { headers: await this.headers() });
+    return this.normalizeRestoreTest(r.data);
+  }
+
+  async getSureBackupStatus(): Promise<SureBackupStatusResponse> {
+    const path = this.config.sureBackupStatusPath;
+    if (!path) return { data: null };
+    const r = await this.http.get<unknown>(path, { headers: await this.headers() });
+    return this.normalizeSureBackupStatus(r.data);
   }
 }

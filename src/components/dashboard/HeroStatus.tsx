@@ -56,10 +56,21 @@ const HeroStatus = () => {
         <div className="text-right space-y-1">
           <p className="text-xs text-primary-foreground/50 uppercase tracking-wider">Report Date</p>
           <p className="text-lg font-semibold">
-            {now.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
+            {new Intl.DateTimeFormat("en-US", {
+              timeZone: "Asia/Makassar",
+              weekday: "short",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }).format(now)}
           </p>
           <p className="text-xs text-primary-foreground/50">
-            Last Sync: {lastSync.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+            Last Sync:{" "}
+            {new Intl.DateTimeFormat("en-US", {
+              timeZone: "Asia/Makassar",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(lastSync)}
           </p>
         </div>
       </div>

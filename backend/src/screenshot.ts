@@ -6,6 +6,7 @@ export interface ScreenshotOptions {
   width?: number;
   height?: number;
   fullPage?: boolean;
+  hideSidebar?: boolean;
 }
 
 export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer> {
@@ -14,6 +15,7 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
   const width = opts?.width ?? 1280;
   const height = opts?.height ?? 720;
   const fullPage = opts?.fullPage ?? false;
+  const hideSidebar = opts?.hideSidebar ?? true;
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -22,8 +24,23 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
   try {
     const page = await browser.newPage();
     await page.setViewport({ width, height, deviceScaleFactor: 2 });
+    const target = new URL(url);
+    if (hideSidebar) {
+      await page.setCookie({
+        name: "sidebar:state",
+        value: "false",
+        domain: target.hostname,
+        path: "/",
+      });
+    }
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60_000 });
-    const buf = await page.screenshot({ type: "png", fullPage });
+    if (hideSidebar) {
+      await page.addScriptTag({ content: 'document.cookie="sidebar:state=false; path=/; max-age=604800";' });
+      await page.reload({ waitUntil: "networkidle0" });
+      await page.waitForSelector('[data-state="collapsed"]', { timeout: 2000 }).catch(() => {});
+    }
+    const main = await page.$("main");
+    const buf = main ? await main.screenshot({ type: "png" }) : await page.screenshot({ type: "png", fullPage });
     return buf as Buffer;
   } finally {
     await browser.close();

@@ -44,6 +44,150 @@ This document describes how to replace dashboard mock data with live data from t
   - SureBackup configuration/health endpoint for feature enablement.
 - Acceptance:
   - “Verified & Ready” only when last test is success and within policy window; otherwise WARNING.
+- UX flow:
+  - User lands on dashboard and sees Restore Readiness card with status, last test time, duration, and SureBackup.
+  - If restore data is missing, show “Not Configured” with callout state and no success badge.
+  - If SureBackup is disabled, show WARNING and prompt for enablement.
+- Component tree (web, Shadcn UI + Tailwind):
+  - RestoreReadiness
+    - Card
+      - CardHeader
+        - CardTitle
+        - Badge (status)
+      - CardContent
+        - StatRow (Last Test)
+        - StatRow (Result)
+        - StatRow (Duration)
+        - StatRow (SureBackup)
+      - CardFooter
+        - Button (View Details)
+- Component tree (mobile, React Native Paper/Tamagui):
+  - RestoreReadinessCard
+    - Card
+      - Card.Title
+      - Chip (status)
+      - Card.Content
+        - XStack/YStack rows
+          - Text (label)
+          - Text (value)
+      - Button (View Details)
+- Responsive layout (web):
+  - Use the 12-column grid pattern for cards and details.
+  - Example:
+    - <div className="grid grid-cols-12 gap-4">
+      <div className="col-span-12 md:col-span-6">Restore Readiness</div>
+      <div className="col-span-12 md:col-span-6">Risk Score</div>
+    - </div>
+- Backend endpoints:
+  - GET /api/veeam/restore/tests/latest
+    - Response: { data: { lastTestAt: string | null, result: "Success" | "Warning" | "Failed" | "Unknown", durationMinutes: number | null } }
+  - GET /api/veeam/surebackup/status
+    - Response: { data: { enabled: boolean, lastCheckAt: string | null } }
+- Status logic:
+  - Verified & Ready when result = Success and lastTestAt within policy window (e.g., 30 days) and SureBackup enabled.
+  - WARNING otherwise, with reason derived from missing or stale data.
+- Sample React (web) with theming:
+  - 
+    ```tsx
+    import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+    import { Badge } from "@/components/ui/badge";
+    import { Button } from "@/components/ui/button";
+
+    type RestoreReadinessData = {
+      lastTestAt: string | null;
+      result: "Success" | "Warning" | "Failed" | "Unknown";
+      durationMinutes: number | null;
+      sureBackupEnabled: boolean;
+    };
+
+    export function RestoreReadinessCard({ data }: { data: RestoreReadinessData }) {
+      const verified = data.result === "Success" && data.sureBackupEnabled;
+      const badge = verified ? "Verified & Ready" : "Attention Needed";
+      return (
+        <Card className="bg-card text-foreground">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Restore Readiness</CardTitle>
+            <Badge variant={verified ? "default" : "destructive"}>{badge}</Badge>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Last Test</span>
+              <span>{data.lastTestAt ?? "—"}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Result</span>
+              <span>{data.result}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Duration</span>
+              <span>{data.durationMinutes ? `${data.durationMinutes} min` : "—"}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">SureBackup</span>
+              <span>{data.sureBackupEnabled ? "Enabled" : "Disabled"}</span>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline">View Details</Button>
+          </CardFooter>
+        </Card>
+      );
+    }
+    ```
+- Sample React Native (mobile) with theming:
+  - 
+    ```tsx
+    import { MD3LightTheme, Provider as PaperProvider, Card, Text, Chip, Button } from "react-native-paper";
+    import { View } from "react-native";
+
+    const theme = {
+      ...MD3LightTheme,
+      colors: {
+        ...MD3LightTheme.colors,
+        primary: "#1F3A8A",
+      },
+    };
+
+    type RestoreReadinessData = {
+      lastTestAt: string | null;
+      result: "Success" | "Warning" | "Failed" | "Unknown";
+      durationMinutes: number | null;
+      sureBackupEnabled: boolean;
+    };
+
+    export function RestoreReadinessCardMobile({ data }: { data: RestoreReadinessData }) {
+      const verified = data.result === "Success" && data.sureBackupEnabled;
+      return (
+        <PaperProvider theme={theme}>
+          <Card>
+            <Card.Title title="Restore Readiness" />
+            <Card.Content>
+              <Chip style={{ marginBottom: 8 }}>{verified ? "Verified & Ready" : "Attention Needed"}</Chip>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                <Text>Last Test</Text>
+                <Text>{data.lastTestAt ?? "—"}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                <Text>Result</Text>
+                <Text>{data.result}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                <Text>Duration</Text>
+                <Text>{data.durationMinutes ? `${data.durationMinutes} min` : "—"}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                <Text>SureBackup</Text>
+                <Text>{data.sureBackupEnabled ? "Enabled" : "Disabled"}</Text>
+              </View>
+            </Card.Content>
+            <Card.Actions>
+              <Button>View Details</Button>
+            </Card.Actions>
+          </Card>
+        </PaperProvider>
+      );
+    }
+    ```
 
 ## Phase 5 — Backend Hardening and Config
 - Secrets and TLS:

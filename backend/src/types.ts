@@ -62,3 +62,24 @@ export interface BackupItem {
 export interface BackupsResponse {
   data: BackupItem[];
 }
+
+export type RestoreTestResult = "Success" | "Warning" | "Failed" | "Unknown";
+
+export interface RestoreTestLatest {
+  lastTestAt: string | null;
+  result: RestoreTestResult;
+  durationMinutes: number | null;
+}
+
+export interface RestoreTestLatestResponse {
+  data: RestoreTestLatest | null;
+}
+
+export interface SureBackupStatus {
+  enabled: boolean;
+  lastCheckAt: string | null;
+}
+
+export interface SureBackupStatusResponse {
+  data: SureBackupStatus | null;
+}

@@ -9,6 +9,8 @@ export interface Config {
   corsOrigin: string | undefined;
   whatsappGatewayUrl: string;
   dashboardUrl: string;
+  restoreTestsPath: string | undefined;
+  sureBackupStatusPath: string | undefined;
 }
 
 function requireEnv(name: string): string {
@@ -34,5 +36,7 @@ export function loadConfig(): Config {
     corsOrigin: process.env.CORS_ORIGIN,
     whatsappGatewayUrl: process.env.WHATSAPP_GATEWAY_URL ?? "http://10.60.10.59:8192/send-group-message",
     dashboardUrl: process.env.DASHBOARD_URL ?? "http://localhost:8080/",
+    restoreTestsPath: process.env.VEEAM_RESTORE_TESTS_PATH,
+    sureBackupStatusPath: process.env.VEEAM_SUREBACKUP_STATUS_PATH,
   };
 }

@@ -13,6 +13,9 @@
 2026-02-22
 - Added WhatsApp notify endpoint POST /api/notify/whatsapp with Puppeteer screenshot.
 - Implemented WhatsApp gateway client (form-data) and backend config for gateway and dashboard URL.
+2026-02-23 00:25 WIB
+- Fixed WhatsApp image upload by switching to Node http/https with fs stream.
+- Added /api/notify/screenshot for debugging; verified text-only and screenshot sends.
 2026-02-22 22:47:33 WIB
 - Phase 2: wired HeroStatus to /api/veeam/jobs/states; compute overall status and SLA.
 - Implemented metrics utilities (status, compliance, risk) with unit tests.
@@ -49,3 +52,30 @@
 - Counts use primary jobs and copy jobs (with fallback), SLA card unchanged.
 2026-02-22 23:40:24 WIB
 - Removed Backup Copy table; restored CriticalVMTable to VM Protection (Primary + Vault).
+2026-02-22 23:55:12 WIB
+- Updated vault lag threshold to 24 hours for VM Protection status.
+2026-02-23 00:10:26 WIB
+- Display timestamps in WITA (Asia/Makassar) for hero and VM protection table.
+2026-02-23 00:22:21 WIB
+- Expanded Phase 4 Restore Readiness spec with UX flow, components, responsive layout, endpoints, and samples.
+2026-02-23 00:37:11 WIB
+- Added Restore Readiness backend endpoints with configurable VBR paths.
+- Wired Restore Readiness card to live API data with 7-day policy logic.
+- Added env entries to README for Restore Test and SureBackup endpoints.
+2026-02-23 00:43:09 WIB
+- Screenshot: collapse sidebar by cookie before load; target main element for capture.
+- Notify: add caption builder from live Veeam data; ASCII-only, newline-normalized.
+- Notify: implement short/full modes; full sends image then split caption chunks.
+- WhatsApp: switch multipart to axios; add fallback and status handling.
+- Typecheck passed; manual sends work with provided caption; auto flow improved.
+2026-02-23 00:52:09 WIB
+- WA send pipeline hardened: catch 422 in gateway client and fallback.
+- Text-only path now uses chunked send with emoji→ASCII fallback per chunk.
+- Verified: image sent with sidebar hidden, then caption delivered in chunks.
+2026-02-23 00:56:55 WIB
+- Implemented single-message send: image with full caption together.
+- Progressive fallback: pretty → ASCII → trimmed (900/700/512/300) to pass gateway.
+- Verified endpoint: POST /api/notify/whatsapp auto:true captionMode:full returns 200.
+2026-02-23 01:07:18 WIB
+- Fix repository usage percent in caption: clamp used≤capacity and pct≤100%.
+- Verified text-only auto caption returns 200 and shows bounded percentages.

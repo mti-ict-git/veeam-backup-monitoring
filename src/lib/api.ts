@@ -89,3 +89,40 @@ export async function fetchVMProtection(signal?: AbortSignal): Promise<VMProtect
   }
   return r.json() as Promise<VMProtectionResponse>;
 }
+
+export type RestoreTestResult = "Success" | "Warning" | "Failed" | "Unknown";
+
+export type RestoreTestLatest = {
+  lastTestAt: string | null;
+  result: RestoreTestResult;
+  durationMinutes: number | null;
+};
+
+export type RestoreTestLatestResponse = {
+  data: RestoreTestLatest | null;
+};
+
+export type SureBackupStatus = {
+  enabled: boolean;
+  lastCheckAt: string | null;
+};
+
+export type SureBackupStatusResponse = {
+  data: SureBackupStatus | null;
+};
+
+export async function fetchRestoreTestLatest(signal?: AbortSignal): Promise<RestoreTestLatestResponse> {
+  const r = await fetch(`${API_BASE}/api/veeam/restore/tests/latest`, { signal });
+  if (!r.ok) {
+    return { data: null };
+  }
+  return r.json() as Promise<RestoreTestLatestResponse>;
+}
+
+export async function fetchSureBackupStatus(signal?: AbortSignal): Promise<SureBackupStatusResponse> {
+  const r = await fetch(`${API_BASE}/api/veeam/surebackup/status`, { signal });
+  if (!r.ok) {
+    return { data: null };
+  }
+  return r.json() as Promise<SureBackupStatusResponse>;
+}

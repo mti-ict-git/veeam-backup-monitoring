@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchVMProtection, type VMProtection } from "@/lib/api";
-import { format } from "date-fns";
 
 function parseDate(d?: string): Date | undefined {
   if (!d) return undefined;
@@ -19,6 +18,18 @@ function isFail(res?: string): boolean {
   return r.includes("fail") || r.includes("error");
 }
 
+function formatWitaDateTime(d: Date): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Makassar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
 const CriticalVMTable = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["vms-protection"],
@@ -27,11 +38,11 @@ const CriticalVMTable = () => {
   const now = new Date();
   const items: VMProtection[] = data?.data ?? [];
   const primaryRpoHours = 24;
-  const vaultLagHours = 2;
+  const vaultLagHours = 24;
   const rows = items.map((v) => {
     const pdt = parseDate(v.primaryLastRun);
     const cdt = parseDate(v.copyLastRun);
-    const lastBackup = pdt ? format(pdt, "yyyy-MM-dd HH:mm") : "—";
+    const lastBackup = pdt ? formatWitaDateTime(pdt) : "—";
     const withinRpo = pdt ? hoursDiff(now, pdt) <= primaryRpoHours : false;
     const primaryFailed = isFail(v.primaryResult);
     const vaultFailed = isFail(v.copyResult);
@@ -40,7 +51,7 @@ const CriticalVMTable = () => {
     const vaultOk = cdt ? vaultLagOk && !vaultFailed : false;
     const ok = primaryOk && vaultOk;
     const rpo = withinRpo ? "Compliant" : "Breach";
-    const vaultLast = cdt ? format(cdt, "yyyy-MM-dd HH:mm") : "—";
+    const vaultLast = cdt ? formatWitaDateTime(cdt) : "—";
     const vaultLagText = cdt ? `${Math.floor(hoursDiff(now, cdt))}h` : "—";
     return { name: v.name, env: "Production", lastBackup, rpo, ok, vaultLast, vaultLagText, rpoOk: withinRpo };
   });
