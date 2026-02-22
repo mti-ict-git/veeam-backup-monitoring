@@ -1,11 +1,16 @@
 import { UserPlus, ShieldAlert, Lock, LogIn, Key, TrendingUp, TrendingDown } from "lucide-react";
 
+const failedLoginYesterday = 14;
+const failedLoginToday = 47;
+const failedLoginPctChange = Math.round(((failedLoginToday - failedLoginYesterday) / failedLoginYesterday) * 100);
+const failedLoginSpikeClass = failedLoginPctChange > 400 ? "text-critical" : failedLoginPctChange > 200 ? "text-warning" : "text-muted-foreground";
+
 const events = [
-  { label: "New Users Created", value: 3, icon: UserPlus, trend: "up", colorClass: "bg-info-muted text-info" },
-  { label: "Added to Domain Admins", value: 0, icon: ShieldAlert, trend: "neutral", colorClass: "bg-success-muted text-success", alert: true },
-  { label: "Account Lockouts", value: 5, icon: Lock, trend: "down", colorClass: "bg-warning-muted text-warning" },
-  { label: "Failed Login Attempts", value: 47, icon: LogIn, trend: "up", colorClass: "bg-critical-muted text-critical" },
-  { label: "Privileged Logons (4672)", value: 128, icon: Key, trend: "neutral", colorClass: "bg-navy text-primary-foreground" },
+  { label: "New Users Created", value: 3, icon: UserPlus, trend: "up" as const, colorClass: "bg-info-muted text-info" },
+  { label: "Added to Domain Admins", value: 0, icon: ShieldAlert, trend: "neutral" as const, colorClass: "bg-success-muted text-success", alert: true },
+  { label: "Account Lockouts", value: 5, icon: Lock, trend: "down" as const, colorClass: "bg-warning-muted text-warning" },
+  { label: "Failed Login Attempts", value: failedLoginToday, icon: LogIn, trend: "up" as const, colorClass: "bg-critical-muted text-critical", pctChange: failedLoginPctChange },
+  { label: "Privileged Logons (4672)", value: 128, icon: Key, trend: "neutral" as const, colorClass: "bg-navy text-primary-foreground" },
 ];
 
 const SecurityMonitoring = () => {
@@ -38,6 +43,11 @@ const SecurityMonitoring = () => {
               {event.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-critical" />}
               {event.trend === "down" && <TrendingDown className="h-3.5 w-3.5 text-success" />}
             </div>
+            {event.pctChange !== undefined && (
+              <span className={`text-[10px] font-bold ${failedLoginSpikeClass}`}>
+                {event.pctChange > 0 ? "↑" : "↓"} {event.pctChange > 0 ? "+" : ""}{event.pctChange}% vs yesterday
+              </span>
+            )}
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{event.label}</span>
           </div>
         ))}

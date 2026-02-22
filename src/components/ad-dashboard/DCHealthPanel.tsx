@@ -1,15 +1,21 @@
-import { Server } from "lucide-react";
+import { Server, Clock } from "lucide-react";
 
 const dcs = [
-  { name: "DC-PROD-01", status: "Online", cpu: 24, memory: 58, disk: 72, uptime: "45d 12h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-PROD-02", status: "Online", cpu: 31, memory: 63, disk: 65, uptime: "45d 12h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-DR-01", status: "Online", cpu: 12, memory: 41, disk: 81, uptime: "30d 8h", ntds: "Running", netlogon: "Running" },
-  { name: "DC-BRANCH-01", status: "Online", cpu: 18, memory: 45, disk: 77, uptime: "22d 5h", ntds: "Running", netlogon: "Running" },
+  { name: "DC-PROD-01", status: "Online", cpu: 24, memory: 58, disk: 72, uptime: "45d 12h", ntds: "Running", netlogon: "Running", timeDrift: 0.3 },
+  { name: "DC-PROD-02", status: "Online", cpu: 31, memory: 63, disk: 65, uptime: "45d 12h", ntds: "Running", netlogon: "Running", timeDrift: 1.2 },
+  { name: "DC-DR-01", status: "Online", cpu: 12, memory: 41, disk: 81, uptime: "30d 8h", ntds: "Running", netlogon: "Running", timeDrift: 4.1 },
+  { name: "DC-BRANCH-01", status: "Online", cpu: 18, memory: 45, disk: 77, uptime: "22d 5h", ntds: "Running", netlogon: "Running", timeDrift: 0.8 },
 ];
 
 const getBarColor = (label: string, value: number) => {
   if (label === "DISK") return value > 85 ? "bg-critical" : value > 70 ? "bg-warning" : "bg-success";
   return value > 80 ? "bg-critical" : value > 60 ? "bg-warning" : "bg-success";
+};
+
+const getTimeDriftColor = (drift: number) => {
+  if (drift > 5) return "text-critical";
+  if (drift >= 3) return "text-warning";
+  return "text-success";
 };
 
 const DCHealthPanel = () => (
@@ -51,6 +57,15 @@ const DCHealthPanel = () => (
               <div className="flex justify-between">
                 <span>Netlogon</span>
                 <span className={`font-semibold ${dc.netlogon === "Running" ? "text-success" : "text-critical"}`}>{dc.netlogon}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Time Drift
+                </span>
+                <span className={`font-semibold ${getTimeDriftColor(dc.timeDrift)}`}>
+                  {dc.timeDrift}s {dc.timeDrift > 5 ? "⚠" : dc.timeDrift >= 3 ? "⚠" : "✓"}
+                </span>
               </div>
             </div>
           </div>
