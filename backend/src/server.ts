@@ -3,9 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "node:path";
 dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
-import { loadConfig } from "./config";
-import { TokenManager } from "./token";
-import { VeeamClient } from "./veeamClient";
+import { loadConfig } from "./config.js";
+import { TokenManager } from "./token.js";
+import { VeeamClient } from "./veeamClient.js";
 import {
   RepositoriesStatesResponse,
   VMsStatesResponse,
@@ -15,19 +15,21 @@ import {
   RestoreTestLatestResponse,
   SureBackupStatusResponse,
 } from "./types";
-import { captureDashboard } from "./screenshot";
-import { sendGroupMessage, sendImageWithCaption } from "./whatsapp";
-import { startReportScheduler } from "./scheduler";
+import { captureDashboard } from "./screenshot.js";
+import { sendGroupMessage, sendImageWithCaption } from "./whatsapp.js";
+import { startReportScheduler } from "./scheduler.js";
 
 const config = loadConfig();
 const app = express();
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: config.corsOrigin ?? "*",
-  }),
-);
+const originSetting = (() => {
+  const v = config.corsOrigin;
+  if (!v || v === "*") return true;
+  const list = v.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  return list.length > 1 ? list : list[0];
+})();
+app.use(cors({ origin: originSetting }));
 
 const tokens = new TokenManager();
 const veeam = new VeeamClient(tokens);

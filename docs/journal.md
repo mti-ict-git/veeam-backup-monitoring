@@ -105,3 +105,9 @@
 2026-02-23 02:26:59 WIB
 - Fix Node ESM resolution in container: use --experimental-specifier-resolution=node via npm start.
 - Dockerfile now runs 'npm start' in backend working dir.
+2026-02-23 02:28:52 WIB
+- Allow multiple CORS origins via comma-separated CORS_ORIGIN env.
+- Typecheck clean after server CORS change.
+2026-02-23 02:33:35 WIB
+- Fix Node 24 ESM import resolution by adding .js extensions on relative imports.
+- Update server, veeamClient, token, scheduler, whatsapp, screenshot.

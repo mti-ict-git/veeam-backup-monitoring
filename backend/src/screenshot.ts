@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 
 export interface ScreenshotOptions {
   url?: string;

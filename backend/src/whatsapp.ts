@@ -5,7 +5,7 @@ import https from "node:https";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 
 export interface WhatsAppSendResult {
   ok: boolean;

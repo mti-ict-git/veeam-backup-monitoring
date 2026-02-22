@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import https from "node:https";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 import {
   JobsStatesResponse,
   RepositoriesStatesResponse,
@@ -9,7 +9,7 @@ import {
   RestoreTestResult,
   SureBackupStatusResponse,
 } from "./types";
-import { TokenManager } from "./token";
+import { TokenManager } from "./token.js";
 
 export class VeeamClient {
   private config = loadConfig();

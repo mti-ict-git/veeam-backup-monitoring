@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import axios from "axios";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 
 export function startReportScheduler() {
   const cfg = loadConfig();

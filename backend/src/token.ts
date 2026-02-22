@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import https from "node:https";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 
 interface TokenResponse {
   access_token: string;
