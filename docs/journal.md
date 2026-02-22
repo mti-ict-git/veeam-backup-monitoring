@@ -102,3 +102,6 @@
 2026-02-23 02:15:08 WIB
 - Fix Dockerfile backend permissions: use pptruser workspace, chown, npm ci.
 - Guidance: rebuild images with 'docker compose build' on server.
+2026-02-23 02:26:59 WIB
+- Fix Node ESM resolution in container: use --experimental-specifier-resolution=node via npm start.
+- Dockerfile now runs 'npm start' in backend working dir.
