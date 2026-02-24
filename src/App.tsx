@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import ActiveDirectory from "./pages/ActiveDirectory";
+import DockerMonitoring from "./pages/DockerMonitoring";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/active-directory" element={<ActiveDirectory />} />
+                <Route path="/docker" element={<DockerMonitoring />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
