@@ -1,4 +1,4 @@
-import { ShieldCheck, Users } from "lucide-react";
+import { ShieldCheck, Users, Container } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
 const items = [
   { title: "Veeam Backup", url: "/", icon: ShieldCheck },
   { title: "Active Directory", url: "/active-directory", icon: Users },
+  { title: "Docker", url: "/docker", icon: Container },
 ];
 
 export function AppSidebar() {
