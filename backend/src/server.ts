@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios";
 import dotenv from "dotenv";
 import path from "node:path";
 dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
@@ -48,6 +49,64 @@ app.get("/api/veeam/jobs/copy/states", async (_req, res) => {
     const data = await veeam.getBackupCopyJobsStates();
     res.json(data);
   } catch (e) {
+    res.status(502).json({ error: "Upstream error" });
+  }
+});
+
+app.get("/api/veeam/debug/sessions", async (req, res) => {
+  try {
+    const limitRaw = typeof req.query.limit === "string" ? req.query.limit : "";
+    const limit = Math.max(1, Math.min(500, Number(limitRaw || 20)));
+    const data = await veeam.getSessionsRaw(limit);
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "Upstream error" });
+  }
+});
+
+app.get("/api/veeam/debug/raw", async (req, res) => {
+  try {
+    const pathRaw = typeof req.query.path === "string" ? req.query.path : "";
+    const p = pathRaw.trim();
+    if (!p || p.length > 300) {
+      res.status(400).json({ error: "Invalid path" });
+      return;
+    }
+    if (p.startsWith("/") || p.includes("..") || p.includes("\\") || p.includes("#")) {
+      res.status(400).json({ error: "Invalid path" });
+      return;
+    }
+    if (!/^[a-zA-Z0-9/?&=._%*-]+$/.test(p)) {
+      res.status(400).json({ error: "Invalid path" });
+      return;
+    }
+    const allowedPrefixes = [
+      "sessions",
+      "jobSessions",
+      "jobs",
+      "backupCopy",
+      "immediateBackupCopy",
+      "query",
+      "backup",
+      "backupServer",
+    ];
+    if (!allowedPrefixes.some((prefix) => p.startsWith(prefix))) {
+      res.status(400).json({ error: "Path not allowed" });
+      return;
+    }
+    const data = await veeam.getRaw(p);
+    res.json(data);
+  } catch (e: unknown) {
+    if (axios.isAxiosError(e)) {
+      res.status(e.response?.status ?? 502).json({
+        error: "Upstream error",
+        upstreamStatus: e.response?.status ?? null,
+        upstreamData: e.response?.data ?? null,
+        upstreamMessage: e.message,
+        upstreamCode: e.code ?? null,
+      });
+      return;
+    }
     res.status(502).json({ error: "Upstream error" });
   }
 });
@@ -145,7 +204,11 @@ app.get("/api/veeam/vms/protection", async (_req, res) => {
     ]);
     const primaryData = primaryJobs.status === "fulfilled" ? primaryJobs.value.data : [];
     const copyData = copyJobs.status === "fulfilled" ? copyJobs.value.data : [];
-    const norm = (s: string) => s.trim().toLowerCase().replace(/^vault[_\-\s]+/, "");
+    const norm = (s: string) => {
+      const lower = s.trim().toLowerCase();
+      const seg = lower.includes("\\") ? (lower.split("\\").pop() ?? lower) : lower;
+      return seg.replace(/^vault[_\-\s]+/, "");
+    };
     const primaryMap = new Map<string, JobState[]>();
     const copyMap = new Map<string, JobState[]>();
     for (const j of primaryData) {
@@ -167,16 +230,26 @@ app.get("/api/veeam/vms/protection", async (_req, res) => {
         .map((j) => ({ j, t: j.lastRun ? Date.parse(j.lastRun) : -Infinity }))
         .sort((a, b) => (b.t || -Infinity) - (a.t || -Infinity))[0]?.j;
     };
+    const isSuccess = (res?: string) => (res ?? "").toLowerCase().includes("success");
+    const pickLatestSuccess = (arr: JobState[] | undefined) => {
+      if (!arr || arr.length === 0) return undefined;
+      const successful = arr.filter((j) => isSuccess(j.lastResult));
+      if (successful.length > 0) {
+        return pickLatest(successful);
+      }
+      return pickLatest(arr);
+    };
     const out: VMProtectionResponse = {
       data: Array.from(keys).map((k) => {
         const p = pickLatest(primaryMap.get(k));
-        const c = pickLatest(copyMap.get(k));
+        const latestCopy = pickLatest(copyMap.get(k));
+        const lastSuccessCopy = pickLatestSuccess(copyMap.get(k));
         return {
           name: k,
           primaryLastRun: p?.lastRun,
           primaryResult: p?.lastResult ?? "",
-          copyLastRun: c?.lastRun,
-          copyResult: c?.lastResult ?? "",
+          copyLastRun: lastSuccessCopy?.lastRun,
+          copyResult: latestCopy?.lastResult ?? "",
         };
       }),
     };
@@ -492,7 +565,6 @@ app.post("/api/notify/whatsapp", async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown error";
-    // eslint-disable-next-line no-console
     console.error("notify/whatsapp error:", msg);
     res.status(500).json({ error: "internal error", message: msg });
   }

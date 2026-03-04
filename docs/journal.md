@@ -114,3 +114,5 @@
 2026-02-23 02:40:17 WIB
 - Add Nginx reverse proxy for /api to backend in Docker web image.
 - Copy nginx/default.conf and update Dockerfile.web to use it.
+Mon Feb 23 02:41:01 WIB 2026
+- Drafted plan to connect Active Directory monitoring frontend to real data sources.

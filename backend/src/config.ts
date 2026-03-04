@@ -34,7 +34,7 @@ export function loadConfig(): Config {
     veeamTokenUrl: tokenUrl || requireEnv("VEEAM_TOKEN_URL"),
     veeamUsername: requireEnv("VEEAM_USERNAME"),
     veeamPassword: requireEnv("VEEAM_PASSWORD"),
-    veeamApiVersion: process.env.VEEAM_API_VERSION ?? "1.1-rev1",
+    veeamApiVersion: process.env.VEEAM_API_VERSION ?? "1.2-rev0",
     insecureTls: (process.env.VEEAM_INSECURE_TLS ?? "false").toLowerCase() === "true",
     port: Number(process.env.PORT ?? 4000),
     corsOrigin: process.env.CORS_ORIGIN,
