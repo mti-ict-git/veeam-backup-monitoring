@@ -394,6 +394,7 @@ async function buildCaption(): Promise<string> {
     rpoLine,
     "",
     "#MTIBackup #ICTMonitoring",
+    config.reportFooterUrl,
   ].filter(Boolean) as string[];
   return parts.join("\n");
 }
@@ -437,6 +438,7 @@ async function buildShortCaption(): Promise<string> {
     `Warn:${counts.warning}`,
     `Fail:${counts.failed}`,
     nonCompliant > 0 ? `RPO:${nonCompliant}NOK` : "RPO:OK",
+    config.reportFooterUrl,
   ];
   return parts.join(" | ");
 }

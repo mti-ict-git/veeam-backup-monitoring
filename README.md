@@ -87,6 +87,7 @@ This project is built with:
   - `REPORT_CAPTION_MODE=full`                 # full | short
   - `REPORT_HIDE_SIDEBAR=true`                 # sembunyikan sidebar pada screenshot
   - `REPORT_URL=http://localhost:8080/`        # URL dashboard untuk screenshot
+  - `REPORT_FOOTER_URL=https://monitoring.merdekabattery.com/`  # URL di footer caption
   - `REPORT_ON_START=false`                    # kirim sekali saat start
   - `# REPORT_CHAT_ID=<group-id>`              # OPSIONAL. Jika tidak diisi, pakai WHATSAPP_GROUP_ID
 - Start both services:

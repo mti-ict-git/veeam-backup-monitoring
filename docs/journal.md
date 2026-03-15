@@ -118,3 +118,7 @@ Mon Feb 23 02:41:01 WIB 2026
 - Drafted plan to connect Active Directory monitoring frontend to real data sources.
 Wed Mar 11 17:30:40 WITA 2026
 - Filter out disabled jobs from Veeam job lists at the backend client layer.
+Sun Mar 15 10:25:54 WITA 2026
+- Add production dashboard URL to WhatsApp report footer.
+Sun Mar 15 10:31:50 WITA 2026
+- Make WhatsApp report footer URL configurable via REPORT_FOOTER_URL.

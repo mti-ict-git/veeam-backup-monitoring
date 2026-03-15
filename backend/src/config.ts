@@ -9,6 +9,7 @@ export interface Config {
   corsOrigin: string | undefined;
   whatsappGatewayUrl: string;
   dashboardUrl: string;
+  reportFooterUrl: string | undefined;
   restoreTestsPath: string | undefined;
   sureBackupStatusPath: string | undefined;
 }
@@ -40,6 +41,7 @@ export function loadConfig(): Config {
     corsOrigin: process.env.CORS_ORIGIN,
     whatsappGatewayUrl: whatsappApiUrl,
     dashboardUrl: process.env.DASHBOARD_URL ?? "http://localhost:8080/",
+    reportFooterUrl: process.env.REPORT_FOOTER_URL,
     restoreTestsPath: process.env.VEEAM_RESTORE_TESTS_PATH,
     sureBackupStatusPath: process.env.VEEAM_SUREBACKUP_STATUS_PATH,
   };
