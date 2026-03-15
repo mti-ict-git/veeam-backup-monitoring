@@ -122,6 +122,7 @@ This project is built with:
       "url": "http://localhost:8080/"
     }
     ```
+- Screenshot readiness: report capture now waits for VM Protection Vault columns (`Vault Last Copy` and `Vault Lag`) and retries one reload before taking the image.
   
 - Scheduler:
   - Scheduler akan memanggil endpoint internal pada jadwal yang dikonfigurasi.

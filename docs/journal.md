@@ -152,3 +152,9 @@ Sun Mar 15 10:31:50 WITA 2026
 2026-03-15 18:44:12 WITA
 - Add backup copy job name visibility inside the Primary RPO detail modal for Veeam console verification.
 - Add matched backup copy jobs table in modal with copy name, run time, result, and type.
+2026-03-15 18:51:48 WITA
+- Improve report screenshot capture by waiting for VM Protection Vault columns to finish loading.
+- Add one automatic reload retry before capture to reduce empty Vault Last Copy and Vault Lag in sent reports.
+2026-03-15 18:56:08 WITA
+- Fix backend screenshot typecheck/lint issue by moving browser DOM readiness check into string-evaluated page function.
+- Verify backend typecheck passes without requiring DOM lib types in Node tsconfig.
