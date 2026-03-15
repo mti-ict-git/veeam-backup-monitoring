@@ -36,9 +36,40 @@ export class VeeamClient {
     };
   }
 
+  private isDisabledJob(job: JobState): boolean {
+    const statusStr = (job.status ?? "").toLowerCase();
+    if (statusStr.includes("disabled")) return true;
+
+    const rec = job as unknown as Record<string, unknown>;
+    const getBool = (key: string): boolean | undefined => {
+      const v = rec[key];
+      return typeof v === "boolean" ? v : undefined;
+    };
+    const getStr = (key: string): string | undefined => {
+      const v = rec[key];
+      return typeof v === "string" ? v : undefined;
+    };
+
+    const disabledKeys = ["disabled", "isDisabled"];
+    for (const k of disabledKeys) {
+      if (getBool(k) === true) return true;
+    }
+
+    const enabledKeys = ["enabled", "isEnabled", "scheduleEnabled", "isScheduleEnabled", "jobEnabled"];
+    for (const k of enabledKeys) {
+      if (getBool(k) === false) return true;
+    }
+
+    const stateStr = (getStr("state") ?? "").toLowerCase();
+    if (stateStr.includes("disabled")) return true;
+
+    return false;
+  }
+
   async getJobsStates(): Promise<JobsStatesResponse> {
     const r = await this.http.get<JobsStatesResponse>("jobs/states", { headers: await this.headers() });
-    return r.data;
+    const items = Array.isArray(r.data?.data) ? r.data.data : [];
+    return { data: items.filter((j) => !this.isDisabledJob(j)) };
   }
 
   async getSessionsRaw(limit = 200): Promise<unknown> {
@@ -146,7 +177,7 @@ export class VeeamClient {
             const arr = extractDataArray(r.data);
             if (!arr) continue;
             const normalized = arr.map(toJobState).filter((v): v is JobState => v !== null);
-            const filtered = normalized.filter(looksLikeCopy);
+            const filtered = normalized.filter(looksLikeCopy).filter((j) => !this.isDisabledJob(j));
             if (filtered.length > 0) {
               const byName = new Map<string, JobState>();
               for (const it of filtered) {
@@ -174,7 +205,7 @@ export class VeeamClient {
         return name.includes("vault") || name.startsWith("vault_") || type === "filebackupcopy";
       });
       if (fallback.length > 0) {
-        return { data: fallback };
+        return { data: fallback.filter((j) => !this.isDisabledJob(j)) };
       }
     } catch {
       // ignore

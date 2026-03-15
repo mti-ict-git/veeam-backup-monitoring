@@ -116,3 +116,5 @@
 - Copy nginx/default.conf and update Dockerfile.web to use it.
 Mon Feb 23 02:41:01 WIB 2026
 - Drafted plan to connect Active Directory monitoring frontend to real data sources.
+Wed Mar 11 17:30:40 WITA 2026
+- Filter out disabled jobs from Veeam job lists at the backend client layer.
