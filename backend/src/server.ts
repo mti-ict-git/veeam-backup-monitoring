@@ -47,7 +47,42 @@ app.get("/api/veeam/jobs/states", async (_req, res) => {
 app.get("/api/veeam/jobs/copy/states", async (_req, res) => {
   try {
     const data = await veeam.getBackupCopyJobsStates();
-    res.json(data);
+    const normalize = (value: string) =>
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/^vault[_\-\s]+/, "")
+        .replace(/\([^)]*\)/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    try {
+      const backups = await veeam.getBackups();
+      const creationByName = new Map<string, string>();
+      for (const b of backups.data) {
+        if (typeof b.name !== "string" || !b.creationTime) continue;
+        creationByName.set(normalize(b.name), b.creationTime);
+      }
+      const enriched = data.data.map((j) => {
+        if (typeof j.name !== "string") return j;
+        if (j.lastRun) return j;
+        const creation = creationByName.get(normalize(j.name));
+        if (!creation) return j;
+        const result = (j.lastResult ?? "").trim().toLowerCase();
+        if (result.length > 0 && result !== "unknown") {
+          return { ...j, lastRun: creation };
+        }
+        return {
+          ...j,
+          lastRun: creation,
+          lastResult: "Success",
+          message: j.message ?? "Derived from backup creation time",
+        };
+      });
+      res.json({ data: enriched });
+      return;
+    } catch {
+      res.json(data);
+      return;
+    }
   } catch (e) {
     res.status(502).json({ error: "Upstream error" });
   }
@@ -223,7 +258,7 @@ app.get("/api/veeam/vms/protection", async (_req, res) => {
       arr.push(j);
       copyMap.set(key, arr);
     }
-    const keys = new Set<string>([...primaryMap.keys(), ...copyMap.keys()]);
+    const keys = new Set<string>(primaryMap.size > 0 ? [...primaryMap.keys()] : [...copyMap.keys()]);
     const pickLatest = (arr: JobState[] | undefined) => {
       if (!arr || arr.length === 0) return undefined;
       return arr

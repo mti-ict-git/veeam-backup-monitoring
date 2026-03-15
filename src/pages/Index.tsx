@@ -1,6 +1,5 @@
 import HeroStatus from "@/components/dashboard/HeroStatus";
 import JobSummaryCards from "@/components/dashboard/JobSummaryCards";
-import BackupCopyJobsTable from "@/components/dashboard/BackupCopyJobsTable";
 import CriticalVMTable from "@/components/dashboard/CriticalVMTable";
 import StorageUsage from "@/components/dashboard/StorageUsage";
 import RestoreReadiness from "@/components/dashboard/RestoreReadiness";
@@ -33,9 +32,6 @@ const Index = () => (
 
       {/* 2. Job Summary */}
       <JobSummaryCards />
-
-      {/* 2b. Backup Copy Status */}
-      <BackupCopyJobsTable />
 
       {/* 3. Critical VM Table */}
       <CriticalVMTable />

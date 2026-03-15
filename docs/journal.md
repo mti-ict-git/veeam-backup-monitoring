@@ -122,3 +122,33 @@ Sun Mar 15 10:25:54 WITA 2026
 - Add production dashboard URL to WhatsApp report footer.
 Sun Mar 15 10:31:50 WITA 2026
 - Make WhatsApp report footer URL configurable via REPORT_FOOTER_URL.
+2026-03-15 11:05:25 WITA
+- Add backup copy fallback using Veeam backups listing when jobs copy endpoints return empty.
+- Keep /api/veeam/jobs/copy/states populated for Vault_* entries in environments without copy job states.
+2026-03-15 11:52:21 WITA
+- Improve backup copy fallback result: mark Success when backup point time exists.
+- Use backup creation time when lastPointInTime is unavailable for lastRun.
+2026-03-15 12:06:20 WITA
+- Improve backup copy fallback freshness by matching latest sessions with normalized Vault/base job names.
+- Prefer session end/creation time and session result/message over stale backup object timestamps.
+2026-03-15 12:38:50 WITA
+- Fix backup copy count mismatch by excluding orphan Vault backup records without session match and backup point.
+- Align fallback list closer to Veeam console job count in environments where stale Vault entries remain.
+2026-03-15 12:59:13 WITA
+- Fix VM Protection row count mismatch by keying rows from primary jobs set when available.
+- Prevent copy-only/orphan keys from adding extra VM rows beyond filtered primary job count.
+2026-03-15 13:15:55 WITA
+- Exclude disabled base-job keys from backup copy results to match disabled filtering policy.
+- Apply disabled-key guard to copy endpoint sources and backup-history fallback mapping.
+2026-03-15 15:16:43 WITA
+- Explain and fix false-positive Success for newly created Vault copy jobs before first copy session.
+- Require session freshness against backup creation time and mark pre-run copy state as Unknown.
+2026-03-15 17:23:25 WITA
+- Add regex-based copy session matching for Vault patterns like `Vault_X\X (Full|Incremental)`.
+- Keep disabled-copy exclusion active while searching matches from session and backup fallback sources.
+2026-03-15 18:39:07 WITA
+- Hide standalone Backup Copy table from dashboard and keep focus on VM Protection matrix.
+- Make Primary RPO values clickable and open a detail modal with matched primary backup jobs.
+2026-03-15 18:44:12 WITA
+- Add backup copy job name visibility inside the Primary RPO detail modal for Veeam console verification.
+- Add matched backup copy jobs table in modal with copy name, run time, result, and type.

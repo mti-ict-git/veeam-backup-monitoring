@@ -72,6 +72,26 @@ This project is built with:
 - Express (backend proxy)
 - Axios (backend HTTP client)
 
+## Backup Copy API Notes
+
+- Endpoint: `GET /api/veeam/jobs/copy/states`
+- Primary source: Veeam `jobs/states` and `sessions` copy filters.
+- Fallback source: Veeam `backups` listing for `Vault_*` or copy-like names when copy state endpoints return empty.
+- Fallback freshness logic: match normalized Vault/base names to latest `sessions` data, then use backup timestamps only when session match is unavailable.
+- Fallback count guard: skip orphan `Vault_*` records when `jobId` is zero, no session match exists, and no backup point time is present.
+- Disabled guard: copy entries are excluded when their normalized base key matches a disabled job in `jobs/states`.
+- Pre-run guard: do not infer copy Success from older base-job sessions; require session timestamp at/after backup `creationTime` or a backup point.
+- Regex matching: backup copy fallback now prefers regex matches against session names in `Vault_X\X (...)` format, with disabled jobs still excluded.
+
+## VM Protection API Notes
+
+- Endpoint: `GET /api/veeam/vms/protection`
+- Row source priority: use normalized keys from primary jobs when primary data is available.
+- Copy jobs enrich vault columns only and do not create additional rows when primary keys exist.
+- Dashboard focus: VM Protection table is the primary operational view; standalone Backup Copy table is hidden.
+- Primary RPO UX: each RPO value is clickable and opens a modal with matched primary backup-job details.
+- Modal verification UX: shows backup copy job name and matched backup copy job list for direct Veeam console cross-checking.
+
 ## WhatsApp Daily Report (Backend)
 
 - Configure these in `.env`:

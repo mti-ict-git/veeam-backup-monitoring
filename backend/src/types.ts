@@ -52,11 +52,13 @@ export interface VMProtectionResponse {
 export interface BackupItem {
   id: string;
   name: string;
+  jobId?: string;
   platform?: string;
   type?: string;
   repositoryId?: string;
   repositoryName?: string;
   lastPointInTime?: string;
+  creationTime?: string;
 }
 
 export interface BackupsResponse {
