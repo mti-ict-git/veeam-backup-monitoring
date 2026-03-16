@@ -158,3 +158,7 @@ Sun Mar 15 10:31:50 WITA 2026
 2026-03-15 18:56:08 WITA
 - Fix backend screenshot typecheck/lint issue by moving browser DOM readiness check into string-evaluated page function.
 - Verify backend typecheck passes without requiring DOM lib types in Node tsconfig.
+2026-03-15 20:19:32 WITA
+- Configure Portainer environment variables in root `.env` for live Docker monitoring integration.
+- Add backend Portainer client and `GET /api/docker/overview` endpoint with auth, container, stack, health, resource, and risk aggregation.
+- Wire Docker dashboard components to live data from `/api/docker/overview` using react-query polling.

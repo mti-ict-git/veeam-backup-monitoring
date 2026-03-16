@@ -12,6 +12,9 @@ export interface Config {
   reportFooterUrl: string | undefined;
   restoreTestsPath: string | undefined;
   sureBackupStatusPath: string | undefined;
+  portainerUrl: string | undefined;
+  portainerUsername: string | undefined;
+  portainerPassword: string | undefined;
 }
 
 function requireEnv(name: string): string {
@@ -44,5 +47,8 @@ export function loadConfig(): Config {
     reportFooterUrl: process.env.REPORT_FOOTER_URL,
     restoreTestsPath: process.env.VEEAM_RESTORE_TESTS_PATH,
     sureBackupStatusPath: process.env.VEEAM_SUREBACKUP_STATUS_PATH,
+    portainerUrl: process.env.PORTAINER_URL,
+    portainerUsername: process.env.PORTAINER_USERNAME,
+    portainerPassword: process.env.PORTAINER_PASSWORD,
   };
 }

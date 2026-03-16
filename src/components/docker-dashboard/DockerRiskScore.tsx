@@ -1,5 +1,13 @@
+import { useQuery } from "@tanstack/react-query";
+import { fetchDockerOverview } from "@/lib/api";
+
 const DockerRiskScore = () => {
-  const score = 35;
+  const { data } = useQuery({
+    queryKey: ["docker-overview"],
+    queryFn: ({ signal }) => fetchDockerOverview(signal),
+    refetchInterval: 60_000,
+  });
+  const score = data?.data.riskScore ?? 0;
   const maxScore = 100;
   const pct = (score / maxScore) * 100;
 
@@ -11,13 +19,7 @@ const DockerRiskScore = () => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (pct / 100) * circumference;
 
-  const factors = [
-    { label: "Unhealthy Containers", status: "1 detected", ok: false },
-    { label: "Restart Anomaly", status: "Elevated", ok: false },
-    { label: "Critical Stopped", status: "None", ok: true },
-    { label: "Resource Usage", status: "Normal", ok: true },
-    { label: "Missing Healthcheck", status: "5 containers", ok: false },
-  ];
+  const factors = data?.data.riskFactors ?? [];
 
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border p-5 flex flex-col items-center">

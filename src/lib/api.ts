@@ -126,3 +126,65 @@ export async function fetchSureBackupStatus(signal?: AbortSignal): Promise<SureB
   }
   return r.json() as Promise<SureBackupStatusResponse>;
 }
+
+export type DockerRestartItem = {
+  name: string;
+  restarts: number;
+  status: string;
+};
+
+export type DockerHealthItem = {
+  name: string;
+  health: "Healthy" | "Unhealthy" | "No Healthcheck";
+  lastCheck: string;
+};
+
+export type DockerStackItem = {
+  name: string;
+  total: number;
+  running: number;
+  failed: number;
+  unhealthy: number;
+};
+
+export type DockerTopMemoryItem = {
+  name: string;
+  usageGB: number;
+};
+
+export type DockerRiskFactor = {
+  label: string;
+  status: string;
+  ok: boolean;
+};
+
+export type DockerOverview = {
+  lastSync: string;
+  total: number;
+  running: number;
+  unhealthy: number;
+  restarting: number;
+  stopped: number;
+  noHealthcheck: number;
+  criticalDown: boolean;
+  restartData: DockerRestartItem[];
+  healthData: DockerHealthItem[];
+  stacks: DockerStackItem[];
+  topMemory: DockerTopMemoryItem[];
+  cpuPct: number;
+  memPct: number;
+  riskScore: number;
+  riskFactors: DockerRiskFactor[];
+};
+
+export type DockerOverviewResponse = {
+  data: DockerOverview;
+};
+
+export async function fetchDockerOverview(signal?: AbortSignal): Promise<DockerOverviewResponse> {
+  const r = await fetch(`${API_BASE}/api/docker/overview`, { signal });
+  if (!r.ok) {
+    throw new Error(`Failed to fetch docker overview: ${r.status}`);
+  }
+  return r.json() as Promise<DockerOverviewResponse>;
+}

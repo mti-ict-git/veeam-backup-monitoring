@@ -1,20 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { Activity, AlertTriangle, XCircle } from "lucide-react";
-
-const mockData = {
-  total: 42,
-  running: 38,
-  unhealthy: 1,
-  restarting: 2,
-  stopped: 1,
-  lastSync: "2026-02-24T08:30:00",
-  criticalDown: false,
-};
+import { fetchDockerOverview } from "@/lib/api";
 
 type Status = "HEALTHY" | "WARNING" | "CRITICAL";
 
-function computeStatus(): Status {
-  if (mockData.criticalDown || mockData.stopped > 2) return "CRITICAL";
-  if (mockData.unhealthy > 0 || mockData.restarting > 3) return "WARNING";
+function computeStatus(criticalDown: boolean, stopped: number, unhealthy: number, restarting: number): Status {
+  if (criticalDown || stopped > 2) return "CRITICAL";
+  if (unhealthy > 0 || restarting > 3) return "WARNING";
   return "HEALTHY";
 }
 
@@ -25,17 +17,24 @@ const statusConfig: Record<Status, { icon: typeof Activity; bg: string; text: st
 };
 
 const DockerHeroStatus = () => {
-  const status = computeStatus();
+  const { data } = useQuery({
+    queryKey: ["docker-overview"],
+    queryFn: ({ signal }) => fetchDockerOverview(signal),
+    refetchInterval: 60_000,
+  });
+  const overview = data?.data;
+  const status = computeStatus(overview?.criticalDown ?? false, overview?.stopped ?? 0, overview?.unhealthy ?? 0, overview?.restarting ?? 0);
   const cfg = statusConfig[status];
   const Icon = cfg.icon;
   const now = new Date();
+  const lastSync = overview?.lastSync ? new Date(overview.lastSync) : now;
 
   const metrics = [
-    { label: "Total", value: mockData.total, color: "text-foreground" },
-    { label: "Running", value: mockData.running, color: "text-success" },
-    { label: "Unhealthy", value: mockData.unhealthy, color: mockData.unhealthy > 0 ? "text-warning" : "text-success" },
-    { label: "Restarting", value: mockData.restarting, color: mockData.restarting > 3 ? "text-warning" : "text-foreground" },
-    { label: "Stopped", value: mockData.stopped, color: mockData.stopped > 0 ? "text-critical" : "text-success" },
+    { label: "Total", value: overview?.total ?? 0, color: "text-foreground" },
+    { label: "Running", value: overview?.running ?? 0, color: "text-success" },
+    { label: "Unhealthy", value: overview?.unhealthy ?? 0, color: (overview?.unhealthy ?? 0) > 0 ? "text-warning" : "text-success" },
+    { label: "Restarting", value: overview?.restarting ?? 0, color: (overview?.restarting ?? 0) > 3 ? "text-warning" : "text-foreground" },
+    { label: "Stopped", value: overview?.stopped ?? 0, color: (overview?.stopped ?? 0) > 0 ? "text-critical" : "text-success" },
   ];
 
   return (
@@ -56,7 +55,7 @@ const DockerHeroStatus = () => {
         <div className="text-right text-xs text-muted-foreground space-y-0.5">
           <p>{now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p>
           <p>{now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
-          <p>Last sync: {new Date(mockData.lastSync).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
+          <p>Last sync: {lastSync.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
         </div>
       </div>
 

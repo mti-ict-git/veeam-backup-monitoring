@@ -85,3 +85,57 @@ export interface SureBackupStatus {
 export interface SureBackupStatusResponse {
   data: SureBackupStatus | null;
 }
+
+export interface DockerRestartItem {
+  name: string;
+  restarts: number;
+  status: string;
+}
+
+export interface DockerHealthItem {
+  name: string;
+  health: "Healthy" | "Unhealthy" | "No Healthcheck";
+  lastCheck: string;
+}
+
+export interface DockerStackItem {
+  name: string;
+  total: number;
+  running: number;
+  failed: number;
+  unhealthy: number;
+}
+
+export interface DockerTopMemoryItem {
+  name: string;
+  usageGB: number;
+}
+
+export interface DockerRiskFactor {
+  label: string;
+  status: string;
+  ok: boolean;
+}
+
+export interface DockerOverview {
+  lastSync: string;
+  total: number;
+  running: number;
+  unhealthy: number;
+  restarting: number;
+  stopped: number;
+  noHealthcheck: number;
+  criticalDown: boolean;
+  restartData: DockerRestartItem[];
+  healthData: DockerHealthItem[];
+  stacks: DockerStackItem[];
+  topMemory: DockerTopMemoryItem[];
+  cpuPct: number;
+  memPct: number;
+  riskScore: number;
+  riskFactors: DockerRiskFactor[];
+}
+
+export interface DockerOverviewResponse {
+  data: DockerOverview;
+}

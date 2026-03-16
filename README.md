@@ -130,6 +130,24 @@ This project is built with:
   - Pastikan `REPORT_ENABLED=true`.
   - Jika `REPORT_CHAT_ID` tidak di-set, scheduler otomatis memakai `WHATSAPP_GROUP_ID`.
 
+## Docker Monitoring (Portainer Real Data)
+
+- Tambahkan env berikut di `.env`:
+  - `PORTAINER_URL=https://portainer.merdekabattery.com`
+  - `PORTAINER_USERNAME=admin`
+  - `PORTAINER_PASSWORD=<password>`
+- Backend endpoint:
+  - `GET /api/docker/overview`
+- Frontend halaman `/docker` sekarang menggunakan data live dari endpoint tersebut untuk:
+  - Hero status container
+  - Summary cards (running, unhealthy, restarting, stopped, no healthcheck)
+  - Restart anomaly
+  - Health check panel
+  - Stack overview
+  - Resource overview (CPU, memory, top memory)
+  - Docker risk score
+- Jika env Portainer belum diisi, endpoint akan mengembalikan `503`.
+
 ## Docker Compose
 
 - Build dan jalan:

@@ -15,10 +15,12 @@ import {
   BackupsResponse,
   RestoreTestLatestResponse,
   SureBackupStatusResponse,
+  DockerOverviewResponse,
 } from "./types";
 import { captureDashboard } from "./screenshot.js";
 import { sendGroupMessage, sendImageWithCaption } from "./whatsapp.js";
 import { startReportScheduler } from "./scheduler.js";
+import { PortainerClient } from "./portainerClient.js";
 
 const config = loadConfig();
 const app = express();
@@ -34,6 +36,10 @@ app.use(cors({ origin: originSetting }));
 
 const tokens = new TokenManager();
 const veeam = new VeeamClient(tokens);
+const portainer =
+  config.portainerUrl && config.portainerUsername && config.portainerPassword
+    ? new PortainerClient(config.portainerUrl, config.portainerUsername, config.portainerPassword)
+    : null;
 
 app.get("/api/veeam/jobs/states", async (_req, res) => {
   try {
@@ -290,6 +296,18 @@ app.get("/api/veeam/vms/protection", async (_req, res) => {
     };
     res.json(out);
   } catch (e) {
+    res.status(502).json({ error: "Upstream error" });
+  }
+});
+
+app.get("/api/docker/overview", async (_req, res) => {
+  try {
+    if (!portainer) {
+      return res.status(503).json({ error: "Portainer environment is not configured" });
+    }
+    const data: DockerOverviewResponse = await portainer.getOverview();
+    res.json(data);
+  } catch {
     res.status(502).json({ error: "Upstream error" });
   }
 });
