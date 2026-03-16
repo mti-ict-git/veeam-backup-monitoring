@@ -147,6 +147,7 @@ This project is built with:
   - Resource overview (CPU, memory, top memory)
   - Docker risk score
 - Jika env Portainer belum diisi, endpoint akan mengembalikan `503`.
+- Respons `503` sekarang juga menampilkan `missingEnv` agar cepat tahu env mana yang belum tersedia di production.
 
 ## Docker Compose
 

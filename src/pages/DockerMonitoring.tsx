@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import DockerHeroStatus from "@/components/docker-dashboard/DockerHeroStatus";
 import ContainerSummaryCards from "@/components/docker-dashboard/ContainerSummaryCards";
 import RestartAnomalyPanel from "@/components/docker-dashboard/RestartAnomalyPanel";
@@ -5,58 +6,66 @@ import HealthCheckPanel from "@/components/docker-dashboard/HealthCheckPanel";
 import StackOverview from "@/components/docker-dashboard/StackOverview";
 import ResourceOverview from "@/components/docker-dashboard/ResourceOverview";
 import DockerRiskScore from "@/components/docker-dashboard/DockerRiskScore";
+import { fetchDockerOverview } from "@/lib/api";
 
-const DockerMonitoring = () => (
-  <div className="min-h-screen bg-background">
-    <div className="max-w-[1280px] mx-auto px-6 py-5 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-navy rounded-lg p-2">
-            <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 7h3v3H4zM9 7h3v3H9zM14 7h3v3h-3zM9 2h3v3H9zM2 12c0 4.97 4.03 9 9 9a9 9 0 0 0 9-9" />
-            </svg>
+const DockerMonitoring = () => {
+  const overviewQuery = useQuery({
+    queryKey: ["docker-overview"],
+    queryFn: ({ signal }) => fetchDockerOverview(signal),
+    refetchInterval: 60_000,
+  });
+  const errorMessage = overviewQuery.isError ? (overviewQuery.error instanceof Error ? overviewQuery.error.message : "Docker data source is unavailable") : null;
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[1280px] mx-auto px-6 py-5 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-navy rounded-lg p-2">
+              <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 7h3v3H4zM9 7h3v3H9zM14 7h3v3h-3zM9 2h3v3H9zM2 12c0 4.97 4.03 9 9 9a9 9 0 0 0 9-9" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Docker Infrastructure Monitoring</h1>
+              <p className="text-xs text-muted-foreground">Container Health & Risk Dashboard</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Docker Infrastructure Monitoring</h1>
-            <p className="text-xs text-muted-foreground">Container Health & Risk Dashboard</p>
+          <p className="text-xs text-muted-foreground">
+            Report generated: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}{" "}
+            {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+        {errorMessage ? (
+          <div className="rounded-lg border border-critical/30 bg-critical/10 px-4 py-3">
+            <p className="text-sm font-medium text-critical">Live Docker data is unavailable</p>
+            <p className="text-xs text-muted-foreground mt-1">{errorMessage}</p>
+          </div>
+        ) : null}
+        <DockerHeroStatus />
+        <ContainerSummaryCards />
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-6">
+            <RestartAnomalyPanel />
+          </div>
+          <div className="col-span-12 md:col-span-6">
+            <HealthCheckPanel />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Report generated: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}{" "}
-          {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-        </p>
-      </div>
-
-      {/* 1. Hero */}
-      <DockerHeroStatus />
-
-      {/* 2. Summary Cards */}
-      <ContainerSummaryCards />
-
-      {/* 3. Restart Anomaly + 4. Health Check */}
-      <div className="grid grid-cols-2 gap-3">
-        <RestartAnomalyPanel />
-        <HealthCheckPanel />
-      </div>
-
-      {/* 5. Stack Overview */}
-      <StackOverview />
-
-      {/* 6. Resource + 7. Risk Score */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
-          <ResourceOverview />
+        <StackOverview />
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-8">
+            <ResourceOverview />
+          </div>
+          <div className="col-span-12 md:col-span-4">
+            <DockerRiskScore />
+          </div>
         </div>
-        <DockerRiskScore />
+        <footer className="text-center py-3 border-t border-border">
+          <p className="text-xs text-muted-foreground">Generated by ICT Docker Monitoring System</p>
+        </footer>
       </div>
-
-      {/* Footer */}
-      <footer className="text-center py-3 border-t border-border">
-        <p className="text-xs text-muted-foreground">Generated by ICT Docker Monitoring System</p>
-      </footer>
     </div>
-  </div>
-);
+  );
+};
 
 export default DockerMonitoring;

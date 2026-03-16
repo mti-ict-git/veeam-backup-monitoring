@@ -36,9 +36,14 @@ app.use(cors({ origin: originSetting }));
 
 const tokens = new TokenManager();
 const veeam = new VeeamClient(tokens);
+const missingPortainerEnv = [
+  !config.portainerUrl ? "PORTAINER_URL" : null,
+  !config.portainerUsername ? "PORTAINER_USERNAME" : null,
+  !config.portainerPassword ? "PORTAINER_PASSWORD" : null,
+].filter((value): value is string => value !== null);
 const portainer =
-  config.portainerUrl && config.portainerUsername && config.portainerPassword
-    ? new PortainerClient(config.portainerUrl, config.portainerUsername, config.portainerPassword)
+  missingPortainerEnv.length === 0
+    ? new PortainerClient(config.portainerUrl ?? "", config.portainerUsername ?? "", config.portainerPassword ?? "")
     : null;
 
 app.get("/api/veeam/jobs/states", async (_req, res) => {
@@ -303,7 +308,10 @@ app.get("/api/veeam/vms/protection", async (_req, res) => {
 app.get("/api/docker/overview", async (_req, res) => {
   try {
     if (!portainer) {
-      return res.status(503).json({ error: "Portainer environment is not configured" });
+      return res.status(503).json({
+        error: "Portainer environment is not configured",
+        missingEnv: missingPortainerEnv,
+      });
     }
     const data: DockerOverviewResponse = await portainer.getOverview();
     res.json(data);

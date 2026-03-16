@@ -162,3 +162,10 @@ Sun Mar 15 10:31:50 WITA 2026
 - Configure Portainer environment variables in root `.env` for live Docker monitoring integration.
 - Add backend Portainer client and `GET /api/docker/overview` endpoint with auth, container, stack, health, resource, and risk aggregation.
 - Wire Docker dashboard components to live data from `/api/docker/overview` using react-query polling.
+2026-03-16 19:30:31 WITA
+- Fix Docker stack math so Failed counts only non-running containers, while Unhealthy is tracked separately.
+- Update stack status logic so running-but-unhealthy stacks show Degraded instead of Critical Failed counts.
+2026-03-16 19:43:54 WITA
+- Improve `/api/docker/overview` 503 response by adding `missingEnv` for faster production diagnosis.
+- Add Docker page warning banner when live API fetch fails to avoid misleading all-zero healthy view.
+- Update Docker layout grids to responsive 12-column pattern for mobile/desktop behavior.
