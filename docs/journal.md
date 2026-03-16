@@ -169,3 +169,12 @@ Sun Mar 15 10:31:50 WITA 2026
 - Improve `/api/docker/overview` 503 response by adding `missingEnv` for faster production diagnosis.
 - Add Docker page warning banner when live API fetch fails to avoid misleading all-zero healthy view.
 - Update Docker layout grids to responsive 12-column pattern for mobile/desktop behavior.
+2026-03-16 20:18:24 WITA
+- Make Docker summary cards clickable and open detail modals with matched container signals.
+- Make Restart Activity, Health Check, and Stack Overview table rows clickable with per-row detail modals.
+2026-03-16 20:24:00 WITA
+- Make Docker hero metric cards clickable and open a detail modal for Total, Running, Unhealthy, Restarting, and Stopped signals.
+2026-03-16 20:27:31 WITA
+- Fix hero Total detail modal to render full container list with scrollable body instead of truncating rows.
+2026-03-16 20:39:58 WITA
+- Fix hero modal overflow by enforcing max dialog height with flex layout and dedicated scroll container.

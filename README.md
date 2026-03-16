@@ -139,11 +139,11 @@ This project is built with:
 - Backend endpoint:
   - `GET /api/docker/overview`
 - Frontend halaman `/docker` sekarang menggunakan data live dari endpoint tersebut untuk:
-  - Hero status container
-  - Summary cards (running, unhealthy, restarting, stopped, no healthcheck)
+  - Hero status container + modal detail per metric card (Total, Running, Unhealthy, Restarting, Stopped)
+  - Summary cards (running, unhealthy, restarting, stopped, no healthcheck) + modal detail per kartu
   - Restart anomaly
-  - Health check panel
-  - Stack overview
+  - Health check panel + modal detail per baris
+  - Stack overview + modal detail per baris
   - Resource overview (CPU, memory, top memory)
   - Docker risk score
 - Jika env Portainer belum diisi, endpoint akan mengembalikan `503`.
