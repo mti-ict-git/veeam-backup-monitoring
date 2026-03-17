@@ -122,7 +122,7 @@ This project is built with:
       "url": "http://localhost:8080/"
     }
     ```
-- Screenshot readiness: report capture now waits for VM Protection Vault columns (`Vault Last Copy` and `Vault Lag`) and retries one reload before taking the image.
+- Screenshot readiness: report capture waits for VM Protection Vault columns (`Vault Last Copy` and `Vault Lag`) to be stable across multiple polls, uses frontend report-ready signal, and retries one reload before capture.
   
 - Scheduler:
   - Scheduler akan memanggil endpoint internal pada jadwal yang dikonfigurasi.
@@ -148,6 +148,7 @@ This project is built with:
   - Docker risk score
 - Jika env Portainer belum diisi, endpoint akan mengembalikan `503`.
 - Respons `503` sekarang juga menampilkan `missingEnv` agar cepat tahu env mana yang belum tersedia di production.
+- Query cache frontend sekarang disimpan di `sessionStorage` untuk mengurangi cold refetch setelah browser refresh.
 
 ## Docker Compose
 

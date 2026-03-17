@@ -178,3 +178,7 @@ Sun Mar 15 10:31:50 WITA 2026
 - Fix hero Total detail modal to render full container list with scrollable body instead of truncating rows.
 2026-03-16 20:39:58 WITA
 - Fix hero modal overflow by enforcing max dialog height with flex layout and dedicated scroll container.
+2026-03-18 04:17:22 WITA
+- Add VM Protection frontend report-ready signal and signature for screenshot readiness synchronization.
+- Harden screenshot capture readiness gate with stable multi-poll checks, stricter pending-cell guard, longer timeout, and mandatory reload retry wait.
+- Configure React Query defaults with stale/gc tuning and sessionStorage cache hydration to reduce cold refetch after browser refresh.

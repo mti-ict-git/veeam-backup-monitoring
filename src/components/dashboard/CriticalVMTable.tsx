@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fetchCopyJobsStates, fetchJobsStates, fetchVMProtection, type JobState, type VMProtection } from "@/lib/api";
 
@@ -139,6 +139,22 @@ const CriticalVMTable = () => {
 
   const selectedLatestPrimaryJob = selectedPrimaryJobs[0];
   const selectedLatestCopyJob = selectedCopyJobs[0];
+  useEffect(() => {
+    const w = window as Window & {
+      __veeamReportReady?: boolean;
+      __veeamReportSignature?: string;
+    };
+    const readyRows = rows.filter((row) => row.vaultLast !== "—" && row.vaultLast !== "…" && row.vaultLagText !== "—" && row.vaultLagText !== "…").length;
+    const minReadyRows = Math.max(1, Math.ceil(rows.length * 0.5));
+    const reportReady = !isLoading && !isError && rows.length > 0 && readyRows >= minReadyRows;
+    const signature = rows.map((row) => `${row.vmKey}|${row.vaultLast}|${row.vaultLagText}`).join(";");
+    w.__veeamReportReady = reportReady;
+    w.__veeamReportSignature = `${rows.length}:${readyRows}:${signature}`;
+    return () => {
+      w.__veeamReportReady = false;
+      w.__veeamReportSignature = "";
+    };
+  }, [isError, isLoading, rows]);
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground mb-3">VM Protection (Primary + Vault)</h2>

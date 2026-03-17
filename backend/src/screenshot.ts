@@ -40,6 +40,8 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
       await page.waitForSelector('[data-state="collapsed"]', { timeout: 2000 }).catch(() => {});
     }
     const vaultColumnsReadyCheck = `() => {
+      const reportReady = Boolean(window.__veeamReportReady);
+      const reportSignature = typeof window.__veeamReportSignature === "string" ? window.__veeamReportSignature : "";
       const table = Array.from(document.querySelectorAll("table")).find((node) => {
         const text = (node.textContent || "").toLowerCase();
         return text.includes("vm name") && text.includes("vault last copy") && text.includes("vault lag");
@@ -57,22 +59,34 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
         const lagText = (cells[lagIndex] && cells[lagIndex].textContent ? cells[lagIndex].textContent : "").trim();
         return { copyText, lagText };
       });
-      const hasReadyData = snapshot.some((item) => {
+      const readyRows = snapshot.filter((item) => {
         const copyReady = item.copyText.length > 0 && item.copyText !== "—" && item.copyText !== "…" && item.copyText !== "...";
         const lagReady = item.lagText.length > 0 && item.lagText !== "—" && item.lagText !== "…" && item.lagText !== "...";
         return copyReady && lagReady;
-      });
-      if (hasReadyData) return true;
-      return snapshot.every((item) => item.copyText !== "…" && item.copyText !== "..." && item.lagText !== "…" && item.lagText !== "...");
+      }).length;
+      const pendingRows = snapshot.filter((item) => {
+        const copyPending = item.copyText === "—" || item.copyText === "…" || item.copyText === "...";
+        const lagPending = item.lagText === "—" || item.lagText === "…" || item.lagText === "...";
+        return copyPending || lagPending;
+      }).length;
+      const stableSource = reportSignature.length > 0 ? reportSignature : snapshot.map((item) => item.copyText + "|" + item.lagText).join(";");
+      const prevSource = typeof window.__veeamReportStableSource === "string" ? window.__veeamReportStableSource : "";
+      const prevCount = typeof window.__veeamReportStableCount === "number" ? window.__veeamReportStableCount : 0;
+      const nextCount = prevSource === stableSource ? prevCount + 1 : 1;
+      window.__veeamReportStableSource = stableSource;
+      window.__veeamReportStableCount = nextCount;
+      const minReadyRows = Math.max(1, Math.ceil(rows.length * 0.5));
+      const domReady = readyRows >= minReadyRows && pendingRows === 0;
+      return (reportReady || domReady) && nextCount >= 3;
     }`;
     const waitForVaultColumns = async () => {
-      await page.waitForFunction(vaultColumnsReadyCheck, { timeout: 12_000, polling: 300 });
+      await page.waitForFunction(vaultColumnsReadyCheck, { timeout: 30_000, polling: 500 });
     };
     try {
       await waitForVaultColumns();
     } catch {
       await page.reload({ waitUntil: "networkidle0" });
-      await waitForVaultColumns().catch(() => {});
+      await waitForVaultColumns();
     }
     const main = await page.$("main");
     const buf = main ? await main.screenshot({ type: "png" }) : await page.screenshot({ type: "png", fullPage });
