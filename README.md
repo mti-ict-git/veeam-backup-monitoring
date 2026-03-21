@@ -122,7 +122,7 @@ This project is built with:
       "url": "http://localhost:8080/"
     }
     ```
-- Screenshot readiness: report capture waits for VM Protection Vault columns (`Vault Last Copy` and `Vault Lag`) to be stable across multiple polls, uses frontend report-ready signal, and retries one reload before capture.
+- Screenshot readiness: report capture now menunggu kesiapan data dari API `/api/veeam/vms/protection` (minimum 80% baris Vault terisi) lalu memverifikasi stabilitas kolom `Vault Last Copy` dan `Vault Lag` di UI sebelum capture, dengan satu reload retry jika belum siap.
   
 - Scheduler:
   - Scheduler akan memanggil endpoint internal pada jadwal yang dikonfigurasi.

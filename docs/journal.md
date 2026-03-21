@@ -182,3 +182,7 @@ Sun Mar 15 10:31:50 WITA 2026
 - Add VM Protection frontend report-ready signal and signature for screenshot readiness synchronization.
 - Harden screenshot capture readiness gate with stable multi-poll checks, stricter pending-cell guard, longer timeout, and mandatory reload retry wait.
 - Configure React Query defaults with stale/gc tuning and sessionStorage cache hydration to reduce cold refetch after browser refresh.
+2026-03-21 17:44:06 WITA
+- Tighten report-ready signal threshold to require copy-job query completion and 80% vault-ready VM rows before marking ready.
+- Add API-level readiness polling in screenshot flow (`/api/veeam/vms/protection`) before DOM stability checks to prevent early capture with empty Vault columns.
+- Re-test WhatsApp full report send via backend endpoint after readiness hardening.

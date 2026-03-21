@@ -39,6 +39,33 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
       await page.reload({ waitUntil: "networkidle0" });
       await page.waitForSelector('[data-state="collapsed"]', { timeout: 2000 }).catch(() => {});
     }
+    const apiReadyCheck = `async () => {
+      try {
+        const response = await fetch("/api/veeam/vms/protection", { cache: "no-store" });
+        if (!response.ok) return false;
+        const payload = await response.json();
+        const rows = Array.isArray(payload && payload.data) ? payload.data : [];
+        if (rows.length === 0) return false;
+        const readyRows = rows.filter((row) => {
+          const copy = typeof row.copyLastRun === "string" ? row.copyLastRun.trim() : "";
+          return copy.length > 0;
+        }).length;
+        const minReadyRows = Math.max(1, Math.ceil(rows.length * 0.8));
+        const stableSource = rows.map((row) => {
+          const name = typeof row.name === "string" ? row.name : "";
+          const copy = typeof row.copyLastRun === "string" ? row.copyLastRun : "";
+          return name + "|" + copy;
+        }).join(";");
+        const prevSource = typeof window.__veeamApiStableSource === "string" ? window.__veeamApiStableSource : "";
+        const prevCount = typeof window.__veeamApiStableCount === "number" ? window.__veeamApiStableCount : 0;
+        const nextCount = prevSource === stableSource ? prevCount + 1 : 1;
+        window.__veeamApiStableSource = stableSource;
+        window.__veeamApiStableCount = nextCount;
+        return readyRows >= minReadyRows && nextCount >= 2;
+      } catch {
+        return false;
+      }
+    }`;
     const vaultColumnsReadyCheck = `() => {
       const reportReady = Boolean(window.__veeamReportReady);
       const reportSignature = typeof window.__veeamReportSignature === "string" ? window.__veeamReportSignature : "";
@@ -79,13 +106,18 @@ export async function captureDashboard(opts?: ScreenshotOptions): Promise<Buffer
       const domReady = readyRows >= minReadyRows && pendingRows === 0;
       return (reportReady || domReady) && nextCount >= 3;
     }`;
+    const waitForApiReady = async () => {
+      await page.waitForFunction(apiReadyCheck, { timeout: 45_000, polling: 1000 });
+    };
     const waitForVaultColumns = async () => {
       await page.waitForFunction(vaultColumnsReadyCheck, { timeout: 30_000, polling: 500 });
     };
     try {
+      await waitForApiReady();
       await waitForVaultColumns();
     } catch {
       await page.reload({ waitUntil: "networkidle0" });
+      await waitForApiReady();
       await waitForVaultColumns();
     }
     const main = await page.$("main");
